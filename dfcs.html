@@ -111,6 +111,43 @@
             display: block;
         }
 
+        .target-notification {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            border: 2px solid #ffcc00;
+            background-color: #2b2400;
+            color: #ffed99;
+            padding: 16px;
+            margin-bottom: 18px;
+            box-shadow: 0 0 18px rgba(255, 204, 0, 0.16);
+        }
+
+        .target-notification.active {
+            display: flex;
+        }
+
+        .target-notification-title {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .target-notification-detail {
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .target-notification button {
+            border-color: #ffcc00;
+            color: #ffcc00;
+            min-width: 120px;
+            font-weight: bold;
+        }
+
         .end-report-title {
             font-size: 22px;
             font-weight: bold;
@@ -378,6 +415,14 @@
                 <button class="acknowledge-button" onclick="acknowledgeEndMission()">ACKNOWLEDGE</button>
             </div>
 
+            <div class="target-notification" id="targetReceivedNotification">
+                <div>
+                    <div class="target-notification-title">TARGET RECEIVED</div>
+                    <div class="target-notification-detail" id="targetReceivedText">New fire mission received.</div>
+                </div>
+                <button type="button" onclick="acknowledgeTargetNotification()">ACKNOWLEDGE</button>
+            </div>
+
             <div class="summary-grid">
                 <div class="data-item">
                     <div class="data-label">TARGET NUMBER</div>
@@ -541,6 +586,43 @@
             const savedCallsign = getAssignedFdcCallsign();
             const fdcCallsign = /^[1-4]$/.test(savedCallsign) ? savedCallsign : "";
             return `${unit}${fdcCallsign || "-"}`;
+        }
+
+        function getTargetNotificationAckKey() {
+            return `dfcsTargetReceivedAck${getAssignedFdcCallsign()}${getAssignedUnit()}`;
+        }
+
+        function getTargetNotificationId(payload) {
+            return payload && payload.targetNumber ? payload.targetNumber : "";
+        }
+
+        function acknowledgeTargetNotification() {
+            const payload = getLatestFiringPayload();
+            const notificationId = getTargetNotificationId(payload);
+            if (notificationId) {
+                localStorage.setItem(getTargetNotificationAckKey(), notificationId);
+            }
+            updateTargetReceivedNotification(payload);
+        }
+
+        function updateTargetReceivedNotification(payload, solution = null) {
+            const panel = document.getElementById("targetReceivedNotification");
+            const text = document.getElementById("targetReceivedText");
+            if (!panel) return;
+
+            const notificationId = getTargetNotificationId(payload);
+            const acknowledgedId = localStorage.getItem(getTargetNotificationAckKey()) || "";
+            const assignedUnit = getAssignedUnit();
+            const hasSolution = Boolean(solution || (
+                payload &&
+                Array.isArray(payload.solutions) &&
+                payload.solutions.some(item => item.label === assignedUnit)
+            ));
+            const visible = Boolean(notificationId && hasSolution && acknowledgedId !== notificationId);
+            panel.classList.toggle("active", visible);
+            if (text && visible) {
+                text.innerText = `Mission ${notificationId} received for ${getUnitAssignedName()}.`;
+            }
         }
 
         function readJsonStorage(key) {
@@ -989,6 +1071,7 @@
             const endMissionReportPanel = document.getElementById("endMissionReportPanel");
             const endMissionReportText = document.getElementById("endMissionReportText");
             const operationalStatus = getUnitOperationalStatus(assignedUnit);
+            updateTargetReceivedNotification(payload, solution);
 
             if (endMissionReportPanel) {
                 endMissionReportPanel.classList.toggle("active", endMissionActive);
