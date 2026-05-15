@@ -8,12 +8,12 @@
  * 5. Set enabled to true.
  */
 window.DFCS_FIREBASE_CONFIG = {
-    enabled: false,
-    apiKey: "PASTE_FIREBASE_API_KEY",
-    authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://PASTE_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "PASTE_PROJECT_ID",
-    storageBucket: "PASTE_PROJECT_ID.appspot.com",
-    messagingSenderId: "PASTE_MESSAGING_SENDER_ID",
-    appId: "PASTE_FIREBASE_APP_ID",
+    enabled: true,
+    apiKey: "AIzaSyAjElRNuZP6IdI51ZoGygx7MDPUlWG3q3E",
+    authDomain: "dfcs-artillery-calculator.firebaseapp.com",
+    databaseURL: "https://dfcs-artillery-calculator-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "dfcs-artillery-calculator",
+    storageBucket: "dfcs-artillery-calculator.firebasestorage.app",
+    messagingSenderId: "190834941353",
+    appId: "1:190834941353:web:be77d4c9fcbc25c2bdb8b8",
 };
