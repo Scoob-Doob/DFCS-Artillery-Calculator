@@ -2258,6 +2258,15 @@
             return localStorage.getItem("fdcCallsign") || "1";
         }
 
+        function isDfcsPresenceActive(unitLabel) {
+            const presence = readJsonStorage(`${getUnitStoragePrefix(unitLabel)}Presence`);
+            if (!presence || presence.fdcCallsign !== getActiveFdcCallsign() || presence.unit !== unitLabel) {
+                return false;
+            }
+            const lastSeenMs = Date.parse(presence.lastSeenAt || "");
+            return Number.isFinite(lastSeenMs) && Date.now() - lastSeenMs <= 15000;
+        }
+
         function getActiveWeaponSystem() {
             const fdcCallsign = getActiveFdcCallsign();
             return localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) ||
@@ -2278,6 +2287,9 @@
         }
 
         function getUnitOperationalStatus(unitLabel) {
+            if (!isDfcsPresenceActive(unitLabel)) {
+                return "out of action";
+            }
             return localStorage.getItem(`${getUnitStoragePrefix(unitLabel)}OperationalStatus`) || "out of action";
         }
 
@@ -3642,7 +3654,8 @@ ${getAmmoOptionsMarkup()}
             const labels = ["A", "B", "C", "D"];
             const selectedLabels = labels.filter(label => {
                 const prefix = getUnitStoragePrefix(label);
-                return localStorage.getItem(`${prefix}Location`) &&
+                return isDfcsPresenceActive(label) &&
+                    localStorage.getItem(`${prefix}Location`) &&
                     localStorage.getItem(`${prefix}Altitude`);
             }).slice(0, fireUnitSize);
             const units = [];

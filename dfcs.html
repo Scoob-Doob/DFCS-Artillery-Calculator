@@ -430,6 +430,24 @@
             return `firingUnit${getAssignedFdcCallsign()}${unit}`;
         }
 
+        let lastPresenceWriteMs = 0;
+
+        function writeDfcsPresence(force = false) {
+            if (!force && Date.now() - lastPresenceWriteMs < 4000) {
+                return;
+            }
+            lastPresenceWriteMs = Date.now();
+            const assignedUnit = getAssignedUnit();
+            const fdcCallsign = getAssignedFdcCallsign();
+            localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Presence`, JSON.stringify({
+                unit: assignedUnit,
+                fdcCallsign,
+                callsign: `${assignedUnit}${fdcCallsign}`,
+                joined: true,
+                lastSeenAt: new Date().toISOString(),
+            }));
+        }
+
         function getUnitOperationalStatus(unit = getAssignedUnit()) {
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}OperationalStatus`) || "out of action";
         }
@@ -871,6 +889,7 @@
         }
 
         function renderDfcs() {
+            writeDfcsPresence();
             const assignedUnit = getAssignedUnit();
             const unitAssignedName = getUnitAssignedName();
             const payload = getLatestFiringPayload();
@@ -994,8 +1013,10 @@
             ].join("");
         }
 
+        writeDfcsPresence(true);
         renderDfcs();
         setInterval(renderDfcs, 1000);
+        setInterval(() => writeDfcsPresence(true), 5000);
     </script>
 </body>
 </html>

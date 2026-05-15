@@ -284,6 +284,7 @@
 
     <script>
         const UNIT_LABELS = ["A", "B", "C", "D"];
+        const DFCS_PRESENCE_TIMEOUT_MS = 15000;
 
         function generateSessionCode() {
             return Math.floor(100000 + Math.random() * 900000).toString();
@@ -354,12 +355,45 @@
         function getRegisteredUnit(label) {
             const fdcCallsign = getSelectedFdcCallsign();
             const scopedPrefix = `firingUnit${fdcCallsign}${label}`;
+            const presence = readJsonStorage(`${scopedPrefix}Presence`);
+            const presenceActive = isDfcsPresenceActive(presence, fdcCallsign, label);
+            const location = localStorage.getItem(`${scopedPrefix}Location`) || "";
+            const altitude = localStorage.getItem(`${scopedPrefix}Altitude`) || "";
             return {
                 label,
                 fdcCallsign,
-                location: localStorage.getItem(`${scopedPrefix}Location`) || "",
-                altitude: localStorage.getItem(`${scopedPrefix}Altitude`) || "",
+                location: presenceActive ? location : "",
+                altitude: presenceActive ? altitude : "",
+                hasSavedData: Boolean(location || altitude),
+                presence,
+                presenceActive,
             };
+        }
+
+        function readJsonStorage(key) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || "null");
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function isDfcsPresenceActive(presence, fdcCallsign, label) {
+            if (!presence || presence.fdcCallsign !== fdcCallsign || presence.unit !== label) {
+                return false;
+            }
+            const lastSeenMs = Date.parse(presence.lastSeenAt || "");
+            return Number.isFinite(lastSeenMs) && Date.now() - lastSeenMs <= DFCS_PRESENCE_TIMEOUT_MS;
+        }
+
+        function writeDfcsPresence(label, fdcCallsign) {
+            localStorage.setItem(`firingUnit${fdcCallsign}${label}Presence`, JSON.stringify({
+                unit: label,
+                fdcCallsign,
+                callsign: `${label}${fdcCallsign}`,
+                joined: true,
+                lastSeenAt: new Date().toISOString(),
+            }));
         }
 
         function getSelectedFdcCallsign() {
@@ -388,17 +422,19 @@
         function renderAvailableUnits() {
             const units = UNIT_LABELS.map(getRegisteredUnit);
             const maxUnits = getFdcMaxUnits();
-            const joinedUnits = units.filter(unit => unit.location && unit.altitude);
+            const joinedUnits = units.filter(unit => unit.presenceActive && unit.location && unit.altitude);
             document.getElementById("availableUnitsList").innerHTML = `
                 <div class="note">Joined ${joinedUnits.length}/${maxUnits}</div>
                 ${units.map(unit => {
-                const available = unit.location && unit.altitude;
+                const available = unit.presenceActive && unit.location && unit.altitude;
+                const stale = !unit.presenceActive && unit.hasSavedData;
                 return `
                     <div class="unit-card ${available ? "available" : ""}">
                         <div class="unit-title">Unit ${unit.label}${unit.fdcCallsign}</div>
-                        <div>Status: ${available ? "Joined" : "Waiting for DFCS"}</div>
+                        <div>Status: ${available ? "Joined" : stale ? "Offline" : "Waiting for DFCS"}</div>
                         <div>Location: ${unit.location || "---"}</div>
                         <div>Altitude: ${unit.altitude || "---"}${unit.altitude ? " m" : ""}</div>
+                        ${unit.presenceActive ? `<div>Last seen: now</div>` : ""}
                     </div>
                 `;
             }).join("")}
@@ -452,13 +488,11 @@
 
             const maxUnits = getFdcMaxUnits(fdcCallsign);
             const alreadyJoined = Boolean(
-                localStorage.getItem(`firingUnit${fdcCallsign}${label}Location`) &&
-                localStorage.getItem(`firingUnit${fdcCallsign}${label}Altitude`)
+                isDfcsPresenceActive(readJsonStorage(`firingUnit${fdcCallsign}${label}Presence`), fdcCallsign, label)
             );
             const joinedCount = UNIT_LABELS.filter(unitLabel => {
                 if (unitLabel === label) return false;
-                return localStorage.getItem(`firingUnit${fdcCallsign}${unitLabel}Location`) &&
-                    localStorage.getItem(`firingUnit${fdcCallsign}${unitLabel}Altitude`);
+                return isDfcsPresenceActive(readJsonStorage(`firingUnit${fdcCallsign}${unitLabel}Presence`), fdcCallsign, unitLabel);
             }).length;
             if (!alreadyJoined && joinedCount >= maxUnits) {
                 alert(`FDC ${fdcCallsign} already has the maximum ${maxUnits} DFCS unit${maxUnits === 1 ? "" : "s"} joined.`);
@@ -469,6 +503,8 @@
             localStorage.setItem("assignedFdcCallsign", fdcCallsign);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Location`, location);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Altitude`, altitude);
+            localStorage.setItem(`firingUnit${fdcCallsign}${label}OperationalStatus`, "stationary");
+            writeDfcsPresence(label, fdcCallsign);
 
             window.location.href = "firing-unit.html";
         }
@@ -501,6 +537,11 @@
                     renderAvailableUnits();
                 }
             });
+            setInterval(() => {
+                if (document.getElementById("fdcSection").classList.contains("active")) {
+                    renderAvailableUnits();
+                }
+            }, 5000);
         }
 
         initIndexPage();

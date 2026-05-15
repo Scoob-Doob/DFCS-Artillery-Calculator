@@ -24,6 +24,7 @@
         "Altitude",
         "OperationalStatus",
         "PendingLocation",
+        "Presence",
     ];
     let db = null;
     let applyingRemote = false;

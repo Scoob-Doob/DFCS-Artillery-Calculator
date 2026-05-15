@@ -157,6 +157,18 @@
     </div>
 
     <script>
+        function writeDfcsPresence() {
+            const assignedUnit = localStorage.getItem("assignedFiringUnit") || "A";
+            const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
+            localStorage.setItem(`firingUnit${fdcCallsign}${assignedUnit}Presence`, JSON.stringify({
+                unit: assignedUnit,
+                fdcCallsign,
+                callsign: `${assignedUnit}${fdcCallsign}`,
+                joined: true,
+                lastSeenAt: new Date().toISOString(),
+            }));
+        }
+
         function getFireUnits() {
             const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
             const assignedUnit = localStorage.getItem("assignedFiringUnit") || "A";
@@ -184,6 +196,7 @@
         }
 
         function renderFiringUnitPage() {
+            writeDfcsPresence();
             const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
             const weaponSystem = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
             const units = getFireUnits();
@@ -205,6 +218,7 @@
         }
 
         renderFiringUnitPage();
+        setInterval(writeDfcsPresence, 5000);
     </script>
 </body>
 </html>
