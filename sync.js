@@ -26,6 +26,7 @@
         "PendingLocation",
         "Presence",
     ];
+    const unitReportKeys = ["dfcsReadyState", "shotReport", "roundsCompleteReport"];
     let db = null;
     let applyingRemote = false;
     const originalSetItem = localStorage.setItem.bind(localStorage);
@@ -34,6 +35,7 @@
     ["1", "2", "3", "4"].forEach(fdc => {
         staticSharedKeys.add(`fdc${fdc}FireUnitSize`);
         staticSharedKeys.add(`fdc${fdc}WeaponSystem`);
+        staticSharedKeys.add(`fdc${fdc}RoomStartedAt`);
     });
 
     unitLabels.forEach(label => {
@@ -44,6 +46,9 @@
         });
         ["1", "2", "3", "4"].forEach(fdc => {
             staticSharedKeys.add(`dfcsDeniedMission${fdc}${label}`);
+            unitReportKeys.forEach(key => {
+                staticSharedKeys.add(`${key}${fdc}${label}`);
+            });
         });
     });
 
@@ -114,7 +119,11 @@
         const path = pathForKey(key);
         if (!database || !path) return;
 
-        database.ref(path).set({
+        const ref = database.ref(path);
+        if (key.endsWith("Presence")) {
+            ref.onDisconnect().remove();
+        }
+        ref.set({
             value: rawValue,
             updatedAt: new Date().toISOString(),
         });

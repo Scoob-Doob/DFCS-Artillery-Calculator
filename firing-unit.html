@@ -160,12 +160,21 @@
         function writeDfcsPresence() {
             const assignedUnit = localStorage.getItem("assignedFiringUnit") || "A";
             const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
+            const presenceKey = `firingUnit${fdcCallsign}${assignedUnit}Presence`;
+            let existingPresence = null;
+            try {
+                existingPresence = JSON.parse(localStorage.getItem(presenceKey) || "null");
+            } catch (error) {
+                existingPresence = null;
+            }
+            const now = new Date().toISOString();
             localStorage.setItem(`firingUnit${fdcCallsign}${assignedUnit}Presence`, JSON.stringify({
                 unit: assignedUnit,
                 fdcCallsign,
                 callsign: `${assignedUnit}${fdcCallsign}`,
                 joined: true,
-                lastSeenAt: new Date().toISOString(),
+                joinedAt: existingPresence && existingPresence.joinedAt ? existingPresence.joinedAt : now,
+                lastSeenAt: now,
             }));
         }
 

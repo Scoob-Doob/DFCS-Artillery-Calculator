@@ -2054,6 +2054,7 @@
                 updatedAt: new Date().toISOString(),
                 targetNumber: currentMissionName || getValue("missionNameInput", ""),
                 targetDescription: getValue("targetDescriptionInput", ""),
+                fdcCallsign: getActiveFdcCallsign(),
                 engagementTiming: getValue("engagementTimingInput", "When Ready"),
                 timeOnTarget: getValue("timeOnTargetInput", ""),
                 methodOfEngagement: buildMethodOfEngagementString(),
@@ -2068,7 +2069,7 @@
         }
 
         function publishUpdatedAcceptedSolutions(solutions) {
-            const acceptedPayload = readJsonStorage("latestFiringSolutions");
+            const acceptedPayload = getActiveMissionPayload();
             const targetNumber = currentMissionName || getValue("missionNameInput", "");
             if (!acceptedPayload || acceptedPayload.targetNumber !== targetNumber) {
                 return;
@@ -2206,6 +2207,12 @@
         }
 
         function clearFireWorkflowState() {
+            const fdcCallsign = getActiveFdcCallsign();
+            ["A", "B", "C", "D"].forEach(unit => {
+                ["dfcsReadyState", "shotReport", "roundsCompleteReport"].forEach(key => {
+                    localStorage.removeItem(`${key}${fdcCallsign}${unit}`);
+                });
+            });
             localStorage.removeItem("dfcsReadyState");
             localStorage.removeItem("fireCommand");
             localStorage.removeItem("shotReport");
@@ -2222,7 +2229,12 @@
 
         function setMissionUnitStatus(unit, status, targetNumber = getCurrentTargetNumber()) {
             if (!unit || !targetNumber) return;
+            const fdcCallsign = getActiveFdcCallsign();
             const reports = getMissionStatusReports();
+            reports.fdcs = reports.fdcs || {};
+            reports.fdcs[fdcCallsign] = reports.fdcs[fdcCallsign] || {};
+            reports.fdcs[fdcCallsign][targetNumber] = reports.fdcs[fdcCallsign][targetNumber] || {};
+            reports.fdcs[fdcCallsign][targetNumber][unit] = status;
             reports[targetNumber] = reports[targetNumber] || {};
             reports[targetNumber][unit] = status;
             saveMissionStatusReports(reports);
@@ -2232,7 +2244,14 @@
             if (!unit || !targetNumber) return;
             ["dfcsReadyState", "shotReport", "roundsCompleteReport"].forEach(key => {
                 const report = readJsonStorage(key);
+                const fdcCallsign = getActiveFdcCallsign();
+                localStorage.removeItem(`${key}${fdcCallsign}${unit}`);
                 if (!report) return;
+                if (report.fdcs && report.fdcs[fdcCallsign] && report.fdcs[fdcCallsign].units && report.fdcs[fdcCallsign].units[unit] && report.fdcs[fdcCallsign].units[unit].targetNumber === targetNumber) {
+                    delete report.fdcs[fdcCallsign].units[unit];
+                    localStorage.setItem(key, JSON.stringify(report));
+                    return;
+                }
                 if (report.units && report.units[unit] && report.units[unit].targetNumber === targetNumber) {
                     delete report.units[unit];
                     localStorage.setItem(key, JSON.stringify(report));
@@ -2243,12 +2262,33 @@
         }
 
         function getUnitReport(key, unitLabel, targetNumber = getCurrentTargetNumber()) {
+            if (!unitLabel || !targetNumber) return null;
+            const fdcCallsign = getActiveFdcCallsign();
+            const scopedReport = readJsonStorage(`${key}${fdcCallsign}${unitLabel}`);
+            if (scopedReport && scopedReport.targetNumber === targetNumber) {
+                return scopedReport;
+            }
             const report = readJsonStorage(key);
             if (!report || !unitLabel || !targetNumber) return null;
+            if (
+                report.fdcs &&
+                report.fdcs[fdcCallsign] &&
+                report.fdcs[fdcCallsign].units &&
+                report.fdcs[fdcCallsign].units[unitLabel] &&
+                report.fdcs[fdcCallsign].units[unitLabel].targetNumber === targetNumber
+            ) {
+                return report.fdcs[fdcCallsign].units[unitLabel];
+            }
             if (report.units && report.units[unitLabel] && report.units[unitLabel].targetNumber === targetNumber) {
+                if (report.units[unitLabel].fdcCallsign && report.units[unitLabel].fdcCallsign !== fdcCallsign) {
+                    return null;
+                }
                 return report.units[unitLabel];
             }
             if (report.unit === unitLabel && report.targetNumber === targetNumber) {
+                if (report.fdcCallsign && report.fdcCallsign !== fdcCallsign) {
+                    return null;
+                }
                 return report;
             }
             return null;
@@ -2261,6 +2301,11 @@
         function isDfcsPresenceActive(unitLabel) {
             const presence = readJsonStorage(`${getUnitStoragePrefix(unitLabel)}Presence`);
             if (!presence || presence.fdcCallsign !== getActiveFdcCallsign() || presence.unit !== unitLabel) {
+                return false;
+            }
+            const roomStartedMs = Date.parse(localStorage.getItem(`fdc${getActiveFdcCallsign()}RoomStartedAt`) || "");
+            const joinedMs = Date.parse(presence.joinedAt || "");
+            if (Number.isFinite(roomStartedMs) && (!Number.isFinite(joinedMs) || joinedMs < roomStartedMs)) {
                 return false;
             }
             const lastSeenMs = Date.parse(presence.lastSeenAt || "");
@@ -2303,11 +2348,17 @@
             if (!targetNumber) return;
 
             const reports = getMissionStatusReports();
+            const fdcCallsign = getActiveFdcCallsign();
+            reports.fdcs = reports.fdcs || {};
+            reports.fdcs[fdcCallsign] = reports.fdcs[fdcCallsign] || {};
+            reports.fdcs[fdcCallsign][targetNumber] = {};
             reports[targetNumber] = {};
             getFireUnits().forEach(unit => {
-                reports[targetNumber][unit.label] = recipients.includes(unit.label)
+                const status = recipients.includes(unit.label)
                     ? "received mission"
                     : getUnitOperationalStatus(unit.label);
+                reports.fdcs[fdcCallsign][targetNumber][unit.label] = status;
+                reports[targetNumber][unit.label] = status;
             });
             saveMissionStatusReports(reports);
         }
@@ -2319,10 +2370,16 @@
             }
 
             const reports = getMissionStatusReports();
-            const reportStatus = reports[targetNumber] && reports[targetNumber][unitLabel];
+            const fdcCallsign = getActiveFdcCallsign();
+            const reportStatus = reports.fdcs &&
+                reports.fdcs[fdcCallsign] &&
+                reports.fdcs[fdcCallsign][targetNumber] &&
+                reports.fdcs[fdcCallsign][targetNumber][unitLabel]
+                ? reports.fdcs[fdcCallsign][targetNumber][unitLabel]
+                : reports[targetNumber] && reports[targetNumber][unitLabel];
             if (reportStatus) return reportStatus;
 
-            const payload = readJsonStorage("latestFiringSolutions");
+            const payload = getActiveMissionPayload();
             const readyState = getUnitReport("dfcsReadyState", unitLabel, targetNumber);
             const shotReport = getUnitReport("shotReport", unitLabel, targetNumber);
             const roundsCompleteReport = getUnitReport("roundsCompleteReport", unitLabel, targetNumber);
@@ -2341,7 +2398,7 @@
             return operationalStatus;
         }
 
-        function hasMissionResponse(payload = readJsonStorage("latestFiringSolutions")) {
+        function hasMissionResponse(payload = getActiveMissionPayload()) {
             if (!payload || !payload.targetNumber || !Array.isArray(payload.recipients) || !payload.recipients.length) {
                 return false;
             }
@@ -2353,7 +2410,7 @@
         }
 
         function shouldLockCalculateButton() {
-            const payload = readJsonStorage("latestFiringSolutions");
+            const payload = getActiveMissionPayload();
             if (!payload || !payload.targetNumber || !Array.isArray(payload.solutions) || !payload.solutions.length) {
                 return false;
             }
@@ -2366,7 +2423,7 @@
             if (!body) return;
 
             const activeLabels = ["A", "B", "C", "D"];
-            const activePayload = readJsonStorage("latestFiringSolutions") || getPendingFiringPayload();
+            const activePayload = getActiveMissionPayload() || getPendingFiringPayload();
             const targetNumber = getCurrentTargetNumber() || (activePayload && activePayload.targetNumber) || "";
 
             body.innerHTML = activeLabels.map(label => `
@@ -2379,7 +2436,11 @@
         }
 
         function getActiveMissionPayload() {
-            return readJsonStorage("latestFiringSolutions");
+            const payload = readJsonStorage("latestFiringSolutions");
+            if (payload && payload.fdcCallsign && payload.fdcCallsign !== getActiveFdcCallsign()) {
+                return null;
+            }
+            return payload;
         }
 
         function getResendCandidateLabels(excludedUnits = []) {
@@ -2406,7 +2467,7 @@
 
         function resetFireWorkflowForCurrentMission() {
             const targetNumber = getCurrentTargetNumber();
-            const acceptedPayload = readJsonStorage("latestFiringSolutions");
+            const acceptedPayload = getActiveMissionPayload();
             if (acceptedPayload && acceptedPayload.targetNumber === targetNumber) {
                 updateFireButtonState();
                 return;
@@ -2423,11 +2484,15 @@
         }
 
         function getPendingFiringPayload() {
-            return readJsonStorage("pendingFiringSolutions");
+            const payload = readJsonStorage("pendingFiringSolutions");
+            if (payload && payload.fdcCallsign && payload.fdcCallsign !== getActiveFdcCallsign()) {
+                return null;
+            }
+            return payload;
         }
 
         function syncAcceptedFiringSolutions() {
-            const acceptedPayload = readJsonStorage("latestFiringSolutions");
+            const acceptedPayload = getActiveMissionPayload();
             const pendingPayload = getPendingFiringPayload();
             if (!acceptedPayload || !pendingPayload || acceptedPayload.targetNumber !== pendingPayload.targetNumber) {
                 return;
@@ -2605,9 +2670,12 @@
 
         function getFireWorkflowStatus() {
             const targetNumber = getCurrentTargetNumber();
-            const payload = readJsonStorage("latestFiringSolutions");
+            const payload = getActiveMissionPayload();
             const readyStore = readJsonStorage("dfcsReadyState");
-            const fireCommand = readJsonStorage("fireCommand");
+            const rawFireCommand = readJsonStorage("fireCommand");
+            const fireCommand = rawFireCommand && rawFireCommand.fdcCallsign && rawFireCommand.fdcCallsign !== getActiveFdcCallsign()
+                ? null
+                : rawFireCommand;
             const shotStore = readJsonStorage("shotReport");
             const hasCurrentPayload = Boolean(payload && payload.targetNumber && payload.targetNumber === targetNumber && Array.isArray(payload.solutions) && payload.solutions.length);
             const recipients = hasCurrentPayload && Array.isArray(payload.recipients) ? payload.recipients : [];
@@ -2696,6 +2764,7 @@
             localStorage.setItem("fireCommand", JSON.stringify({
                 commandId: `${status.targetNumber}-${Date.now()}`,
                 targetNumber: status.targetNumber,
+                fdcCallsign: getActiveFdcCallsign(),
                 units: Array.from(new Set([...status.firedUnits, ...status.readyUnfiredUnits])),
                 firedAt: new Date().toISOString(),
             }));
