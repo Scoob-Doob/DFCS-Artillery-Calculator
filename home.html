@@ -204,6 +204,7 @@
             gap: 8px;
             margin-left: 4px;
             margin-right: 8px;
+            position: relative;
         }
 
         .checkbox-label {
@@ -257,6 +258,59 @@
 
         .end-mission-btn:hover {
             background-color: #cc3333;
+        }
+
+        .end-mission-control {
+            position: relative;
+        }
+
+        .end-mission-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            width: 260px;
+            padding: 12px;
+            border: 1px solid #00ff66;
+            background-color: #000;
+            box-shadow: 0 0 12px rgba(0,255,102,0.18);
+            z-index: 40;
+        }
+
+        .end-mission-menu.open {
+            display: block;
+        }
+
+        .end-mission-menu label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #9dffbf;
+        }
+
+        .end-mission-menu textarea {
+            width: 100%;
+            min-height: 78px;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #111;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+        }
+
+        .end-mission-menu .checkbox-label {
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+
+        .end-mission-menu .end-mission-btn {
+            width: 100%;
         }
 
         .recorded-targets-panel {
@@ -1588,11 +1642,18 @@
         </div>
 
         <div class="mission-controls">
-            <label class="checkbox-label">
-                <input type="checkbox" id="recordTargetCheckbox">
-                Record as Target
-            </label>
-            <button id="endMissionBtn" class="end-mission-btn">END MISSION</button>
+            <div class="end-mission-control">
+                <button id="endMissionToggleBtn" class="end-mission-btn" type="button">END MISSION ▾</button>
+                <div class="end-mission-menu" id="endMissionMenu">
+                    <label for="battleDamageAssessmentInput">Battle Damage Assessment</label>
+                    <textarea id="battleDamageAssessmentInput" placeholder="Optional BDA"></textarea>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="recordTargetCheckbox">
+                        Record as Target
+                    </label>
+                    <button id="endMissionBtn" class="end-mission-btn" type="button">END MISSION</button>
+                </div>
+            </div>
         </div>
 
         <div class="dropdowns">
@@ -2699,6 +2760,20 @@
             unitSendMode = "accept";
         }
 
+        function toggleEndMissionMenu() {
+            const menu = document.getElementById("endMissionMenu");
+            if (menu) {
+                menu.classList.toggle("open");
+            }
+        }
+
+        function closeEndMissionMenu() {
+            const menu = document.getElementById("endMissionMenu");
+            if (menu) {
+                menu.classList.remove("open");
+            }
+        }
+
         function getFireWorkflowStatus() {
             const targetNumber = getCurrentTargetNumber();
             const payload = getActiveMissionPayload();
@@ -3050,6 +3125,8 @@ ${getAmmoOptionsMarkup()}
 
         function endMission() {
             const recordCheckbox = document.getElementById("recordTargetCheckbox");
+            const bdaInput = document.getElementById("battleDamageAssessmentInput");
+            const battleDamageAssessment = bdaInput ? bdaInput.value.trim() : "";
             const resultsContainer = document.getElementById("resultsContainer");
             const endedTargetNumber = getCurrentTargetNumber();
 
@@ -3070,6 +3147,7 @@ ${getAmmoOptionsMarkup()}
                     targetNumber: endedTargetNumber,
                     fdcCallsign: getActiveFdcCallsign(),
                     recipients,
+                    battleDamageAssessment,
                     endedAt: new Date().toISOString(),
                     acknowledged: false,
                 }));
@@ -3093,6 +3171,10 @@ ${getAmmoOptionsMarkup()}
             localStorage.removeItem("missionStatusReports");
             updateFireButtonState();
             updateMissionStatusMonitor();
+            if (bdaInput) {
+                bdaInput.value = "";
+            }
+            closeEndMissionMenu();
         }
 
         function extractFiringData() {
@@ -4678,7 +4760,14 @@ ${getEngagementControlsMarkup()}
             }
 
             // Setup end mission button
+            document.getElementById("endMissionToggleBtn").addEventListener("click", toggleEndMissionMenu);
             document.getElementById("endMissionBtn").addEventListener("click", endMission);
+            document.addEventListener("click", (event) => {
+                const control = document.querySelector(".end-mission-control");
+                if (control && !control.contains(event.target)) {
+                    closeEndMissionMenu();
+                }
+            });
 
             // Setup sidebar toggle for mobile
             const sidebarToggle = document.getElementById("sidebarToggle");

@@ -1130,9 +1130,13 @@
             }
             if (endMissionReportText) {
                 const report = getEndMissionReport();
-                endMissionReportText.innerText = report && report.targetNumber
-                    ? `Mission ${report.targetNumber} ended.`
-                    : "Mission ended.";
+                const lines = report && report.targetNumber
+                    ? [`Mission ${report.targetNumber} ended.`]
+                    : ["Mission ended."];
+                if (report && report.battleDamageAssessment) {
+                    lines.push(`BDA: ${report.battleDamageAssessment}`);
+                }
+                endMissionReportText.innerText = lines.join("\n");
             }
 
             readyButton.disabled = !solution || targetNotificationActive;
