@@ -431,15 +431,12 @@
         }
 
         function getUnitOperationalStatus(unit = getAssignedUnit()) {
-            return localStorage.getItem(`${getUnitStoragePrefix(unit)}OperationalStatus`) ||
-                localStorage.getItem(`firingUnit${unit}OperationalStatus`) ||
-                "out of action";
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}OperationalStatus`) || "out of action";
         }
 
         function setUnitOperationalStatus(status, unit = getAssignedUnit()) {
             const normalizedStatus = status === "moving" ? "moving" : "stationary";
             localStorage.setItem(`${getUnitStoragePrefix(unit)}OperationalStatus`, normalizedStatus);
-            localStorage.setItem(`firingUnit${unit}OperationalStatus`, normalizedStatus);
         }
 
         function normalizeGridInput(value) {
@@ -447,16 +444,11 @@
         }
 
         function getCurrentUnitLocation(unit = getAssignedUnit()) {
-            return localStorage.getItem(`${getUnitStoragePrefix(unit)}Location`) ||
-                localStorage.getItem(`firingUnit${unit}Location`) ||
-                localStorage.getItem(`unit${unit}Location`) ||
-                "";
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}Location`) || "";
         }
 
         function getPendingMovingLocation(unit = getAssignedUnit()) {
-            return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingLocation`) ||
-                localStorage.getItem(`firingUnit${unit}PendingLocation`) ||
-                "";
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingLocation`) || "";
         }
 
         function applyMovingLocation() {
@@ -469,7 +461,6 @@
             }
 
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`, grid);
-            localStorage.setItem(`firingUnit${assignedUnit}PendingLocation`, grid);
             if (input) input.value = grid;
             renderDfcs();
         }
@@ -480,10 +471,7 @@
             if (!pendingGrid) return;
 
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Location`, pendingGrid);
-            localStorage.setItem(`firingUnit${assignedUnit}Location`, pendingGrid);
-            localStorage.setItem(`unit${assignedUnit}Location`, pendingGrid);
             localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`);
-            localStorage.removeItem(`firingUnit${assignedUnit}PendingLocation`);
             localStorage.setItem("firingUnitLocationUpdate", JSON.stringify({
                 unit: assignedUnit,
                 fdcCallsign: getAssignedFdcCallsign(),
@@ -504,7 +492,6 @@
                     return;
                 }
                 localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingLocation`, grid);
-                localStorage.setItem(`firingUnit${getAssignedUnit()}PendingLocation`, grid);
                 sendStationaryLocationUpdate();
             }
 
@@ -540,7 +527,7 @@
             if (!payload || !Array.isArray(payload.solutions)) {
                 return payload;
             }
-            const deniedMission = readJsonStorage(`dfcsDeniedMission${assignedUnit}`);
+            const deniedMission = readJsonStorage(`dfcsDeniedMission${getAssignedFdcCallsign()}${assignedUnit}`);
             if (deniedMission && deniedMission.targetNumber === payload.targetNumber) {
                 return null;
             }
@@ -805,6 +792,7 @@
             const reportedStatus = missionStatus === "ready" ? "ready" : operationalStatus;
             const report = {
                 unit: assignedUnit,
+                fdcCallsign: getAssignedFdcCallsign(),
                 unitAssignedName: getUnitAssignedName(),
                 targetNumber: payload.targetNumber,
                 status: reportedStatus,
@@ -813,7 +801,7 @@
             };
 
             localStorage.setItem("missionDenyReport", JSON.stringify(report));
-            localStorage.setItem(`dfcsDeniedMission${assignedUnit}`, JSON.stringify(report));
+            localStorage.setItem(`dfcsDeniedMission${getAssignedFdcCallsign()}${assignedUnit}`, JSON.stringify(report));
             setMissionUnitStatus(reportedStatus, payload);
             removeUnitReport("dfcsReadyState");
             removeUnitReport("shotReport");

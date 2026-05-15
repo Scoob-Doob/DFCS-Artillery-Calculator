@@ -2058,7 +2058,7 @@
                 timeOnTarget: getValue("timeOnTargetInput", ""),
                 methodOfEngagement: buildMethodOfEngagementString(),
                 methodOfFireControl: getFireControlMode(),
-                weaponSystem: localStorage.getItem("weaponSystem") || "M777A2",
+                weaponSystem: getActiveWeaponSystem(),
                 solutions,
             };
         }
@@ -2121,6 +2121,10 @@
         function processMissionDenyReport() {
             const report = readJsonStorage("missionDenyReport");
             if (!report || !report.denyId || report.denyId === lastProcessedMissionDenyId) {
+                return;
+            }
+            if (report.fdcCallsign && report.fdcCallsign !== getActiveFdcCallsign()) {
+                updateMissionStatusMonitor();
                 return;
             }
 
@@ -2254,14 +2258,27 @@
             return localStorage.getItem("fdcCallsign") || "1";
         }
 
+        function getActiveWeaponSystem() {
+            const fdcCallsign = getActiveFdcCallsign();
+            return localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) ||
+                localStorage.getItem("weaponSystem") ||
+                "M777A2";
+        }
+
+        function getActiveFdcMaxUnits() {
+            const fdcCallsign = getActiveFdcCallsign();
+            const scopedMax = parseInt(localStorage.getItem(`fdc${fdcCallsign}FireUnitSize`), 10);
+            if (scopedMax >= 1 && scopedMax <= 4) return scopedMax;
+            const legacyMax = parseInt(localStorage.getItem("fireUnitSize"), 10);
+            return legacyMax >= 1 && legacyMax <= 4 ? legacyMax : 4;
+        }
+
         function getUnitStoragePrefix(unitLabel) {
             return `firingUnit${getActiveFdcCallsign()}${unitLabel}`;
         }
 
         function getUnitOperationalStatus(unitLabel) {
-            return localStorage.getItem(`${getUnitStoragePrefix(unitLabel)}OperationalStatus`) ||
-                localStorage.getItem(`firingUnit${unitLabel}OperationalStatus`) ||
-                "out of action";
+            return localStorage.getItem(`${getUnitStoragePrefix(unitLabel)}OperationalStatus`) || "out of action";
         }
 
         function isUnitMissionCapable(unitLabel) {
@@ -2336,18 +2353,14 @@
             const body = document.getElementById("missionStatusBody");
             if (!body) return;
 
-            const units = getFireUnits();
+            const activeLabels = ["A", "B", "C", "D"];
             const activePayload = readJsonStorage("latestFiringSolutions") || getPendingFiringPayload();
             const targetNumber = getCurrentTargetNumber() || (activePayload && activePayload.targetNumber) || "";
-            if (!units.length) {
-                body.innerHTML = `<tr><td colspan="2">No fire units available.</td></tr>`;
-                return;
-            }
 
-            body.innerHTML = units.map(unit => `
+            body.innerHTML = activeLabels.map(label => `
                 <tr>
-                    <td>Unit ${unit.label}</td>
-                    <td><span class="status-pill">${targetNumber ? getDerivedUnitStatus(unit.label, targetNumber) : getUnitOperationalStatus(unit.label)}</span></td>
+                    <td>Unit ${label}${getActiveFdcCallsign()}</td>
+                    <td><span class="status-pill">${targetNumber ? getDerivedUnitStatus(label, targetNumber) : getUnitOperationalStatus(label)}</span></td>
                 </tr>
             `).join("");
             updateResendNotice();
@@ -2692,7 +2705,7 @@
         }
 
         function is2B14Selected() {
-            return (localStorage.getItem("weaponSystem") || "M777A2") === "2B14 Mortar";
+            return getActiveWeaponSystem() === "2B14 Mortar";
         }
 
         function getAmmoOptionsMarkup() {
@@ -3470,7 +3483,7 @@ ${getAmmoOptionsMarkup()}
         }
 
         function getSystemConfig() {
-            const weaponSystem = localStorage.getItem("weaponSystem") || "M777A2";
+            const weaponSystem = getActiveWeaponSystem();
             const rawLocation = localStorage.getItem("gunLocation") || "5000050000";
             const rawAltitude = localStorage.getItem("gunElevation");
             const altitude = rawAltitude === null || rawAltitude === "" ? 500 : parseInt(rawAltitude, 10);
@@ -3625,24 +3638,19 @@ ${getAmmoOptionsMarkup()}
         }
 
         function getFireUnits() {
-            const fireUnitSize = parseInt(localStorage.getItem("fireUnitSize"), 10) || 1;
+            const fireUnitSize = getActiveFdcMaxUnits();
             const labels = ["A", "B", "C", "D"];
-            let selectedLabels = [];
-            try {
-                selectedLabels = JSON.parse(localStorage.getItem("selectedFireUnits") || "[]");
-            } catch (error) {
-                selectedLabels = [];
-            }
-            if (!Array.isArray(selectedLabels) || selectedLabels.length === 0) {
-                selectedLabels = labels.slice(0, fireUnitSize);
-            }
-            selectedLabels = selectedLabels.filter(label => labels.includes(label)).slice(0, fireUnitSize);
+            const selectedLabels = labels.filter(label => {
+                const prefix = getUnitStoragePrefix(label);
+                return localStorage.getItem(`${prefix}Location`) &&
+                    localStorage.getItem(`${prefix}Altitude`);
+            }).slice(0, fireUnitSize);
             const units = [];
             for (let i = 0; i < selectedLabels.length; i++) {
                 const label = selectedLabels[i];
                 const prefix = getUnitStoragePrefix(label);
-                const location = localStorage.getItem(`${prefix}Location`) || localStorage.getItem(`firingUnit${label}Location`) || localStorage.getItem(`unit${label}Location`) || "";
-                const altitude = parseInt(localStorage.getItem(`${prefix}Altitude`) || localStorage.getItem(`firingUnit${label}Altitude`) || localStorage.getItem(`unit${label}Altitude`), 10);
+                const location = localStorage.getItem(`${prefix}Location`) || "";
+                const altitude = parseInt(localStorage.getItem(`${prefix}Altitude`), 10);
                 units.push({
                     label,
                     callsign: getActiveFdcCallsign(),

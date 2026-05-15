@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DFCS Firing Unit</title>
+    <title>DFCS</title>
 
     <style>
         body {
@@ -132,7 +132,7 @@
 <body>
     <div class="shell">
         <div class="top-bar">
-            <h1>FIRING UNIT</h1>
+            <h1>DFCS</h1>
             <button class="nav-button" onclick="window.location.href='index.html'">SETUP</button>
         </div>
 
@@ -151,7 +151,7 @@
             <div class="unit-list" id="unitList"></div>
 
             <div class="placeholder">
-                Firing unit data link, fire orders, acknowledgements, and unit-specific firing solutions will be built here.
+                DFCS data link, fire orders, acknowledgements, and unit-specific firing solutions will be built here.
             </div>
         </div>
     </div>
@@ -169,8 +169,8 @@
                 units.push({
                     label,
                     fdcCallsign,
-                    location: localStorage.getItem(`${prefix}Location`) || localStorage.getItem(`firingUnit${label}Location`) || localStorage.getItem(`unit${label}Location`) || "---",
-                    altitude: localStorage.getItem(`${prefix}Altitude`) || localStorage.getItem(`firingUnit${label}Altitude`) || localStorage.getItem(`unit${label}Altitude`) || "---",
+                    location: localStorage.getItem(`${prefix}Location`) || "---",
+                    altitude: localStorage.getItem(`${prefix}Altitude`) || "---",
                 });
             }
 
@@ -184,7 +184,8 @@
         }
 
         function renderFiringUnitPage() {
-            const weaponSystem = localStorage.getItem("weaponSystem") || "M777A2";
+            const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
+            const weaponSystem = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
             const units = getFireUnits();
             const assignedUnit = localStorage.getItem("assignedFiringUnit") || (units[0] && units[0].label) || "A";
 

@@ -3,9 +3,6 @@
     const SESSION_KEY = "dfcsSessionCode";
     const REMOTE_PREFIX = "sessions";
     const staticSharedKeys = new Set([
-        "weaponSystem",
-        "fireUnitSize",
-        "selectedFireUnits",
         "pendingFiringSolutions",
         "latestFiringSolutions",
         "missionStatusReports",
@@ -33,16 +30,17 @@
     const originalSetItem = localStorage.setItem.bind(localStorage);
     const originalRemoveItem = localStorage.removeItem.bind(localStorage);
 
+    ["1", "2", "3", "4"].forEach(fdc => {
+        staticSharedKeys.add(`fdc${fdc}FireUnitSize`);
+        staticSharedKeys.add(`fdc${fdc}WeaponSystem`);
+    });
+
     unitLabels.forEach(label => {
         unitSharedSuffixes.forEach(suffix => {
-            staticSharedKeys.add(`firingUnit${label}${suffix}`);
             ["1", "2", "3", "4"].forEach(fdc => {
                 staticSharedKeys.add(`firingUnit${fdc}${label}${suffix}`);
             });
         });
-        staticSharedKeys.add(`unit${label}Location`);
-        staticSharedKeys.add(`unit${label}Altitude`);
-        staticSharedKeys.add(`dfcsDeniedMission${label}`);
         ["1", "2", "3", "4"].forEach(fdc => {
             staticSharedKeys.add(`dfcsDeniedMission${fdc}${label}`);
         });

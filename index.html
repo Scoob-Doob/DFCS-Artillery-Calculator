@@ -154,18 +154,6 @@
             padding: 10px;
         }
 
-        .unit-card label {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            margin: 0;
-        }
-
-        .unit-card input[type="checkbox"] {
-            width: auto;
-            margin-top: 3px;
-        }
-
         .unit-card.available {
             background-color: #003311;
         }
@@ -217,13 +205,18 @@
 
         <div class="role-actions">
             <button class="role-btn" id="fdcRoleButton" onclick="selectRole('fdc')">FDC</button>
-            <button class="role-btn" id="firingUnitRoleButton" onclick="selectRole('firingUnit')">FIRING UNIT</button>
+            <button class="role-btn" id="firingUnitRoleButton" onclick="selectRole('firingUnit')">DFCS</button>
         </div>
 
         <div class="section" id="fdcSection">
             <div class="input-group">
                 <label for="fdcCallsignInput">FDC Callsign</label>
-                <input id="fdcCallsignInput" type="text" inputmode="numeric" maxlength="1" placeholder="1-4">
+                <select id="fdcCallsignInput">
+                    <option value="1">FDC 1</option>
+                    <option value="2">FDC 2</option>
+                    <option value="3">FDC 3</option>
+                    <option value="4">FDC 4</option>
+                </select>
             </div>
 
             <div class="input-group">
@@ -236,9 +229,9 @@
             </div>
 
             <div class="input-group">
-                <label for="fireUnitSize">Selected Fire Unit Size</label>
+                <label for="fireUnitSize">Maximum DFCS Units</label>
                 <select id="fireUnitSize">
-                    <option value="">Select units</option>
+                    <option value="">Select maximum</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -246,7 +239,7 @@
                 </select>
             </div>
 
-            <label>Available Units</label>
+            <label>Joined DFCS Units</label>
             <div class="unit-grid" id="availableUnitsList"></div>
 
             <button class="enter-btn" onclick="enterFdc()">ENTER FDC</button>
@@ -274,18 +267,18 @@
             </div>
 
             <div class="input-group">
-                <label for="firingUnitLocationInput">Firing Unit Location</label>
+                <label for="firingUnitLocationInput">DFCS Starting Grid</label>
                 <input id="firingUnitLocationInput" type="text" maxlength="10" placeholder="Location">
                 <div class="note">10 figure grid</div>
             </div>
 
             <div class="input-group">
-                <label for="firingUnitAltitudeInput">Firing Unit Altitude</label>
+                <label for="firingUnitAltitudeInput">DFCS Altitude</label>
                 <input id="firingUnitAltitudeInput" type="number" min="0" max="999" placeholder="Elevation">
                 <div class="note">Meters</div>
             </div>
 
-            <button class="enter-btn" onclick="enterFiringUnit()">ENTER FIRING UNIT</button>
+            <button class="enter-btn" onclick="enterFiringUnit()">ENTER DFCS</button>
         </div>
     </div>
 
@@ -361,59 +354,55 @@
         function getRegisteredUnit(label) {
             const fdcCallsign = getSelectedFdcCallsign();
             const scopedPrefix = `firingUnit${fdcCallsign}${label}`;
-            const legacyPrefix = `firingUnit${label}`;
             return {
                 label,
                 fdcCallsign,
-                location: localStorage.getItem(`${scopedPrefix}Location`) || localStorage.getItem(`${legacyPrefix}Location`) || localStorage.getItem(`unit${label}Location`) || "",
-                altitude: localStorage.getItem(`${scopedPrefix}Altitude`) || localStorage.getItem(`${legacyPrefix}Altitude`) || localStorage.getItem(`unit${label}Altitude`) || "",
+                location: localStorage.getItem(`${scopedPrefix}Location`) || "",
+                altitude: localStorage.getItem(`${scopedPrefix}Altitude`) || "",
             };
         }
 
         function getSelectedFdcCallsign() {
             const firingUnitSelect = document.getElementById("firingUnitFdcCallsignInput");
             const fdcInput = document.getElementById("fdcCallsignInput");
-            return (firingUnitSelect && firingUnitSelect.value) || (fdcInput && fdcInput.value.trim()) || localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
+            const firingUnitSection = document.getElementById("firingUnitSection");
+            const isDfcsSetup = firingUnitSection && firingUnitSection.classList.contains("active");
+            if (isDfcsSetup && firingUnitSelect) {
+                return firingUnitSelect.value || localStorage.getItem("assignedFdcCallsign") || "1";
+            }
+            return (fdcInput && fdcInput.value) || localStorage.getItem("fdcCallsign") || "1";
+        }
+
+        function getFdcMaxUnits(fdcCallsign = getSelectedFdcCallsign()) {
+            const fdcSection = document.getElementById("fdcSection");
+            const isFdcSetup = fdcSection && fdcSection.classList.contains("active");
+            const visibleMax = parseInt(document.getElementById("fireUnitSize").value, 10);
+            if (isFdcSetup && visibleMax >= 1 && visibleMax <= 4) return visibleMax;
+            const scopedMax = parseInt(localStorage.getItem(`fdc${fdcCallsign}FireUnitSize`), 10);
+            if (scopedMax >= 1 && scopedMax <= 4) return scopedMax;
+            if (visibleMax >= 1 && visibleMax <= 4) return visibleMax;
+            const legacyMax = parseInt(localStorage.getItem("fireUnitSize"), 10);
+            return legacyMax >= 1 && legacyMax <= 4 ? legacyMax : 4;
         }
 
         function renderAvailableUnits() {
             const units = UNIT_LABELS.map(getRegisteredUnit);
-            const selectedUnits = getSelectedFireUnits();
-            const maxUnits = parseInt(document.getElementById("fireUnitSize").value, 10) || 0;
-            document.getElementById("availableUnitsList").innerHTML = units.map(unit => {
+            const maxUnits = getFdcMaxUnits();
+            const joinedUnits = units.filter(unit => unit.location && unit.altitude);
+            document.getElementById("availableUnitsList").innerHTML = `
+                <div class="note">Joined ${joinedUnits.length}/${maxUnits}</div>
+                ${units.map(unit => {
                 const available = unit.location && unit.altitude;
                 return `
                     <div class="unit-card ${available ? "available" : ""}">
-                        <label>
-                            <input type="checkbox" class="fdc-unit-checkbox" value="${unit.label}" ${selectedUnits.includes(unit.label) ? "checked" : ""} ${maxUnits && selectedUnits.length >= maxUnits && !selectedUnits.includes(unit.label) ? "disabled" : ""} onchange="updateSelectedFireUnits()">
-                            <div>
-                                <div class="unit-title">Unit ${unit.label}${unit.fdcCallsign}</div>
-                                <div>Location: ${unit.location || "Waiting for DFCS"}</div>
-                                <div>Altitude: ${unit.altitude || "---"}${unit.altitude ? " m" : ""}</div>
-                            </div>
-                        </label>
+                        <div class="unit-title">Unit ${unit.label}${unit.fdcCallsign}</div>
+                        <div>Status: ${available ? "Joined" : "Waiting for DFCS"}</div>
+                        <div>Location: ${unit.location || "---"}</div>
+                        <div>Altitude: ${unit.altitude || "---"}${unit.altitude ? " m" : ""}</div>
                     </div>
                 `;
-            }).join("");
-        }
-
-        function getSelectedFireUnits() {
-            try {
-                const selected = JSON.parse(localStorage.getItem("selectedFireUnits") || "[]");
-                return Array.isArray(selected) ? selected.filter(label => UNIT_LABELS.includes(label)) : [];
-            } catch (error) {
-                return [];
-            }
-        }
-
-        function updateSelectedFireUnits() {
-            const maxUnits = parseInt(document.getElementById("fireUnitSize").value, 10) || 4;
-            let selected = Array.from(document.querySelectorAll(".fdc-unit-checkbox:checked")).map(input => input.value);
-            if (selected.length > maxUnits) {
-                selected = selected.slice(0, maxUnits);
-            }
-            localStorage.setItem("selectedFireUnits", JSON.stringify(selected));
-            renderAvailableUnits();
+            }).join("")}
+            `;
         }
 
         function enterFdc() {
@@ -427,15 +416,15 @@
                 return;
             }
             if (!fireUnitSize || fireUnitSize < 1 || fireUnitSize > 4) {
-                alert("Please select a fire unit size between 1 and 4.");
+                alert("Please select a maximum DFCS unit count between 1 and 4.");
                 return;
             }
 
             localStorage.setItem("fdcCallsign", fdcCallsign);
             localStorage.setItem("weaponSystem", weaponSystem);
+            localStorage.setItem(`fdc${fdcCallsign}WeaponSystem`, weaponSystem);
             localStorage.setItem("fireUnitSize", fireUnitSize.toString());
-            const selectedUnits = getSelectedFireUnits().slice(0, fireUnitSize);
-            localStorage.setItem("selectedFireUnits", JSON.stringify(selectedUnits));
+            localStorage.setItem(`fdc${fdcCallsign}FireUnitSize`, fireUnitSize.toString());
             window.location.href = "home.html";
         }
 
@@ -453,11 +442,26 @@
             const altitude = document.getElementById("firingUnitAltitudeInput").value.trim();
 
             if (!location) {
-                alert("Please enter the firing unit location.");
+                alert("Please enter the DFCS starting grid.");
                 return;
             }
             if (!altitude) {
-                alert("Please enter the firing unit altitude.");
+                alert("Please enter the DFCS altitude.");
+                return;
+            }
+
+            const maxUnits = getFdcMaxUnits(fdcCallsign);
+            const alreadyJoined = Boolean(
+                localStorage.getItem(`firingUnit${fdcCallsign}${label}Location`) &&
+                localStorage.getItem(`firingUnit${fdcCallsign}${label}Altitude`)
+            );
+            const joinedCount = UNIT_LABELS.filter(unitLabel => {
+                if (unitLabel === label) return false;
+                return localStorage.getItem(`firingUnit${fdcCallsign}${unitLabel}Location`) &&
+                    localStorage.getItem(`firingUnit${fdcCallsign}${unitLabel}Altitude`);
+            }).length;
+            if (!alreadyJoined && joinedCount >= maxUnits) {
+                alert(`FDC ${fdcCallsign} already has the maximum ${maxUnits} DFCS unit${maxUnits === 1 ? "" : "s"} joined.`);
                 return;
             }
 
@@ -465,12 +469,6 @@
             localStorage.setItem("assignedFdcCallsign", fdcCallsign);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Location`, location);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Altitude`, altitude);
-
-            // Compatibility for existing FDC/home lookup paths.
-            localStorage.setItem(`firingUnit${label}Location`, location);
-            localStorage.setItem(`firingUnit${label}Altitude`, altitude);
-            localStorage.setItem(`unit${label}Location`, location);
-            localStorage.setItem(`unit${label}Altitude`, altitude);
 
             window.location.href = "firing-unit.html";
         }
@@ -481,11 +479,17 @@
                 sessionCodeInput.value = window.DFCS_SYNC.getSessionCode();
             }
             updateSyncStatus();
-            document.getElementById("weaponSystem").value = localStorage.getItem("weaponSystem") || "M777A2";
-            document.getElementById("fireUnitSize").value = localStorage.getItem("fireUnitSize") || "";
+            const initialFdcCallsign = localStorage.getItem("fdcCallsign") || "1";
+            document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${initialFdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
+            document.getElementById("fireUnitSize").value = localStorage.getItem(`fdc${initialFdcCallsign}FireUnitSize`) || localStorage.getItem("fireUnitSize") || "";
             document.getElementById("fireUnitSize").addEventListener("change", renderAvailableUnits);
-            document.getElementById("fdcCallsignInput").value = localStorage.getItem("fdcCallsign") || "";
-            document.getElementById("fdcCallsignInput").addEventListener("input", renderAvailableUnits);
+            document.getElementById("fdcCallsignInput").value = initialFdcCallsign;
+            document.getElementById("fdcCallsignInput").addEventListener("change", () => {
+                const fdcCallsign = getSelectedFdcCallsign();
+                document.getElementById("weaponSystem").value = localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777A2";
+                document.getElementById("fireUnitSize").value = localStorage.getItem(`fdc${fdcCallsign}FireUnitSize`) || "";
+                renderAvailableUnits();
+            });
             document.getElementById("firingUnitLabel").value = localStorage.getItem("assignedFiringUnit") || "A";
             document.getElementById("firingUnitFdcCallsignInput").value = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
             document.getElementById("firingUnitLabel").addEventListener("change", loadFiringUnitInputs);
