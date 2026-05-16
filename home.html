@@ -1882,7 +1882,7 @@
         const DEGREES_TO_MILS = 17.777777778;  // 6400 mils / 360 degrees
         const MILS_TO_DEGREES = 1 / DEGREES_TO_MILS;
         const TWO_B14_DATA_FILE = "2B14-mortar-ballistic-data.json";
-        const NOTIFICATION_SOUND_SRC = "../notifcationbeep1.mp3";
+        const NOTIFICATION_SOUND_SRC = "../notificationbeep1.mp3";
 
         // Mission management
         let currentMissionName = null;
@@ -1894,6 +1894,8 @@
         let lastProcessedLocationUpdateId = localStorage.getItem("lastProcessedLocationUpdateId") || "";
         let lastProcessedMissionDenyId = localStorage.getItem("lastProcessedMissionDenyId") || "";
         let lastProcessedPingId = localStorage.getItem("lastProcessedPingId") || "";
+        let lastProcessedDfcsPingAckId = localStorage.getItem("lastProcessedDfcsPingAckId") || "";
+        let acknowledgedDfcsPingAckId = localStorage.getItem("acknowledgedDfcsPingAckId") || "";
         let acknowledgedDfcsPingId = localStorage.getItem("acknowledgedDfcsPingId") || "";
         let lastReceivedDfcsPing = readJsonStorage("dfcsPing");
         let notificationAudio = null;
@@ -2117,6 +2119,7 @@
             processFiringUnitLocationUpdate();
             processMissionDenyReport();
             processDfcsPing();
+            processDfcsPingAck();
             zuluClockInterval = setInterval(() => {
                 updateZuluTimeDisplay();
                 updateLiveFireCountdowns();
@@ -2125,6 +2128,7 @@
                 processFiringUnitLocationUpdate();
                 processMissionDenyReport();
                 processDfcsPing();
+                processDfcsPingAck();
             }, 1000);
         }
 
@@ -2327,8 +2331,14 @@
                 acknowledgedDfcsPingId = lastReceivedDfcsPing.pingId;
                 localStorage.setItem("acknowledgedDfcsPingId", acknowledgedDfcsPingId);
             }
+            const dfcsPingAck = readJsonStorage("dfcsPingAck");
+            if (dfcsPingAck && dfcsPingAck.pingId) {
+                acknowledgedDfcsPingAckId = dfcsPingAck.pingId;
+                localStorage.setItem("acknowledgedDfcsPingAckId", acknowledgedDfcsPingAckId);
+            }
             updateConnectivityStatus();
             setNotificationSound("fdc-ping", false);
+            setNotificationSound("fdc-ping-ack", false);
             setNotificationSound("fdc-deny", false);
             updateFdcPingButtonState();
         }
@@ -2346,6 +2356,8 @@
                 unitAssignedName: ping.unitAssignedName || `${ping.unit}${getActiveFdcCallsign()}`,
                 sentAt: new Date().toISOString(),
             }));
+            acknowledgedDfcsPingAckId = "";
+            localStorage.removeItem("acknowledgedDfcsPingAckId");
             setNotificationSound("fdc-ping", false);
             updateFdcPingButtonState();
         }
@@ -2372,8 +2384,8 @@
 
             const pingAgeMs = Date.now() - Date.parse(ping.sentAt || "");
             const currentNotice = document.getElementById("connectivityStatus");
-            if (currentNotice && currentNotice.classList.contains("alert")) {
-                // Denied mission notices have priority over transient ping notices.
+            if (currentNotice && (currentNotice.classList.contains("alert") || activeNotificationSounds.has("fdc-ping-ack"))) {
+                // Denied mission and acknowledgement notices have priority over transient ping notices.
             } else if (ping.pingId !== acknowledgedDfcsPingId && (activeNotificationSounds.has("fdc-ping") || (Number.isFinite(pingAgeMs) && pingAgeMs <= 15000))) {
                 updateConnectivityStatus(`Ping from ${ping.unitAssignedName || `${ping.unit}${ping.fdcCallsign}`} at ${formatConnectivityTime(ping.sentAt)}`, "ping");
                 setNotificationSound("fdc-ping", true);
@@ -2398,6 +2410,25 @@
             }));
         }
 
+        function processDfcsPingAck() {
+            const ack = readJsonStorage("dfcsPingAck");
+            if (!ack || !ack.pingId || ack.fdcCallsign !== getActiveFdcCallsign()) {
+                return;
+            }
+
+            if (ack.pingId === acknowledgedDfcsPingAckId) {
+                return;
+            }
+
+            if (ack.pingId !== lastProcessedDfcsPingAckId) {
+                lastProcessedDfcsPingAckId = ack.pingId;
+                localStorage.setItem("lastProcessedDfcsPingAckId", ack.pingId);
+            }
+
+            updateConnectivityStatus(`Ping acknowledged by ${ack.unitAssignedName || `${ack.unit}${ack.fdcCallsign}`} at ${formatConnectivityTime(ack.acknowledgedAt)}`, "ping");
+            setNotificationSound("fdc-ping-ack", true);
+        }
+
         function readJsonStorage(key) {
             try {
                 return JSON.parse(localStorage.getItem(key) || "null");
@@ -2410,6 +2441,8 @@
             if (!notificationAudio) {
                 notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
                 notificationAudio.loop = true;
+                notificationAudio.preload = "auto";
+                notificationAudio.load();
             }
             return notificationAudio;
         }

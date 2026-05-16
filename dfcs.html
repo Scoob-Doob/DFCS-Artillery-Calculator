@@ -476,7 +476,7 @@
     </div>
 
     <script>
-        const NOTIFICATION_SOUND_SRC = "../notifcationbeep1.mp3";
+        const NOTIFICATION_SOUND_SRC = "../notificationbeep1.mp3";
         let notificationAudio = null;
         const activeNotificationSounds = new Set();
 
@@ -484,6 +484,8 @@
             if (!notificationAudio) {
                 notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
                 notificationAudio.loop = true;
+                notificationAudio.preload = "auto";
+                notificationAudio.load();
             }
             return notificationAudio;
         }
