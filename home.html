@@ -2460,6 +2460,11 @@
                 return;
             }
 
+            const activeFdcPing = readJsonStorage("fdcPing");
+            if (!activeFdcPing || activeFdcPing.pingId !== ack.pingId) {
+                return;
+            }
+
             if (ack.pingId === acknowledgedDfcsPingAckId) {
                 return;
             }
@@ -2470,7 +2475,7 @@
             }
 
             updateConnectivityStatus(`Ping acknowledged by ${ack.unitAssignedName || `${ack.unit}${ack.fdcCallsign}`} at ${formatConnectivityTime(ack.acknowledgedAt)}`, "ping");
-            setNotificationSound("fdc-ping-ack", true);
+            setNotificationSound("fdc-ping-ack", false);
         }
 
         function readJsonStorage(key) {
