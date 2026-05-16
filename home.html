@@ -932,12 +932,35 @@
             box-shadow: 0 0 15px rgba(0,255,102,0.1);
         }
 
+        .mission-status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         .mission-status-title {
             font-size: 14px;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-bottom: 10px;
             color: #00ff66;
+        }
+
+        .fdc-ping-button {
+            background-color: #001b24;
+            color: #00ccff;
+            border: 1px solid #00ccff;
+            padding: 6px 9px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .fdc-ping-button:disabled {
+            border-color: #444;
+            color: #666;
+            cursor: not-allowed;
         }
 
         .mission-status-table {
@@ -1769,7 +1792,10 @@
 
             <div class="right-section">
                 <div class="mission-status-box">
-                    <div class="mission-status-title">Mission Status Monitor</div>
+                    <div class="mission-status-header">
+                        <div class="mission-status-title">Mission Status Monitor</div>
+                        <button type="button" class="fdc-ping-button" id="fdcPingButton" onclick="sendFdcPing()" disabled>PING DFCS</button>
+                    </div>
                     <div class="connectivity-status" id="connectivityStatus"></div>
                     <table class="mission-status-table">
                         <thead>
@@ -1856,7 +1882,7 @@
         const DEGREES_TO_MILS = 17.777777778;  // 6400 mils / 360 degrees
         const MILS_TO_DEGREES = 1 / DEGREES_TO_MILS;
         const TWO_B14_DATA_FILE = "2B14-mortar-ballistic-data.json";
-        const NOTIFICATION_SOUND_SRC = "../notifcationbeep1.mp3";
+        const NOTIFICATION_SOUND_SOURCES = ["../notficationbeep1.mp3", "../notifcationbeep1.mp3"];
 
         // Mission management
         let currentMissionName = null;
@@ -1868,6 +1894,7 @@
         let lastProcessedLocationUpdateId = localStorage.getItem("lastProcessedLocationUpdateId") || "";
         let lastProcessedMissionDenyId = localStorage.getItem("lastProcessedMissionDenyId") || "";
         let lastProcessedPingId = localStorage.getItem("lastProcessedPingId") || "";
+        let acknowledgedDfcsPingId = localStorage.getItem("acknowledgedDfcsPingId") || "";
         let lastReceivedDfcsPing = readJsonStorage("dfcsPing");
         let notificationAudio = null;
         const activeNotificationSounds = new Set();
@@ -2283,11 +2310,7 @@
             actions.className = "connectivity-actions";
 
             if (type === "ping") {
-                const pingBackButton = document.createElement("button");
-                pingBackButton.type = "button";
-                pingBackButton.innerText = "PING BACK";
-                pingBackButton.addEventListener("click", sendFdcPing);
-                actions.appendChild(pingBackButton);
+                updateFdcPingButtonState();
             }
 
             const acknowledgeButton = document.createElement("button");
@@ -2300,9 +2323,14 @@
         }
 
         function acknowledgeFdcNotification() {
+            if (lastReceivedDfcsPing && lastReceivedDfcsPing.pingId) {
+                acknowledgedDfcsPingId = lastReceivedDfcsPing.pingId;
+                localStorage.setItem("acknowledgedDfcsPingId", acknowledgedDfcsPingId);
+            }
             updateConnectivityStatus();
             setNotificationSound("fdc-ping", false);
             setNotificationSound("fdc-deny", false);
+            updateFdcPingButtonState();
         }
 
         function sendFdcPing() {
@@ -2319,6 +2347,18 @@
                 sentAt: new Date().toISOString(),
             }));
             setNotificationSound("fdc-ping", false);
+            updateFdcPingButtonState();
+        }
+
+        function updateFdcPingButtonState() {
+            const button = document.getElementById("fdcPingButton");
+            if (!button) return;
+            const ping = lastReceivedDfcsPing || readJsonStorage("dfcsPing");
+            const canPing = Boolean(ping && ping.unit && ping.fdcCallsign === getActiveFdcCallsign());
+            button.disabled = !canPing;
+            button.innerText = canPing
+                ? `PING ${ping.unit}${ping.fdcCallsign}`
+                : "PING DFCS";
         }
 
         function processDfcsPing() {
@@ -2328,12 +2368,13 @@
                 return;
             }
             lastReceivedDfcsPing = ping;
+            updateFdcPingButtonState();
 
             const pingAgeMs = Date.now() - Date.parse(ping.sentAt || "");
             const currentNotice = document.getElementById("connectivityStatus");
             if (currentNotice && currentNotice.classList.contains("alert")) {
                 // Denied mission notices have priority over transient ping notices.
-            } else if (activeNotificationSounds.has("fdc-ping") || (Number.isFinite(pingAgeMs) && pingAgeMs <= 15000)) {
+            } else if (ping.pingId !== acknowledgedDfcsPingId && (activeNotificationSounds.has("fdc-ping") || (Number.isFinite(pingAgeMs) && pingAgeMs <= 15000))) {
                 updateConnectivityStatus(`Ping from ${ping.unitAssignedName || `${ping.unit}${ping.fdcCallsign}`} at ${formatConnectivityTime(ping.sentAt)}`, "ping");
                 setNotificationSound("fdc-ping", true);
             } else {
@@ -2367,8 +2408,20 @@
 
         function getNotificationAudio() {
             if (!notificationAudio) {
-                notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
+                notificationAudio = new Audio(NOTIFICATION_SOUND_SOURCES[0]);
                 notificationAudio.loop = true;
+                notificationAudio.dataset.sourceIndex = "0";
+                notificationAudio.addEventListener("error", () => {
+                    const nextIndex = parseInt(notificationAudio.dataset.sourceIndex || "0", 10) + 1;
+                    if (nextIndex < NOTIFICATION_SOUND_SOURCES.length) {
+                        notificationAudio.dataset.sourceIndex = nextIndex.toString();
+                        notificationAudio.src = NOTIFICATION_SOUND_SOURCES[nextIndex];
+                        notificationAudio.load();
+                        if (activeNotificationSounds.size > 0) {
+                            notificationAudio.play().catch(() => {});
+                        }
+                    }
+                });
             }
             return notificationAudio;
         }
@@ -2391,6 +2444,18 @@
             }
             updateNotificationSound();
         }
+
+        document.addEventListener("pointerdown", () => {
+            const audio = getNotificationAudio();
+            audio.play()
+                .then(() => {
+                    if (activeNotificationSounds.size === 0) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                })
+                .catch(() => {});
+        }, { once: true });
 
         function getCurrentTargetNumber() {
             return currentMissionName || getValue("missionNameInput", "");

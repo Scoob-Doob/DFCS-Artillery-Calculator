@@ -476,14 +476,26 @@
     </div>
 
     <script>
-        const NOTIFICATION_SOUND_SRC = "../notifcationbeep1.mp3";
+        const NOTIFICATION_SOUND_SOURCES = ["../notficationbeep1.mp3", "../notifcationbeep1.mp3"];
         let notificationAudio = null;
         const activeNotificationSounds = new Set();
 
         function getNotificationAudio() {
             if (!notificationAudio) {
-                notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
+                notificationAudio = new Audio(NOTIFICATION_SOUND_SOURCES[0]);
                 notificationAudio.loop = true;
+                notificationAudio.dataset.sourceIndex = "0";
+                notificationAudio.addEventListener("error", () => {
+                    const nextIndex = parseInt(notificationAudio.dataset.sourceIndex || "0", 10) + 1;
+                    if (nextIndex < NOTIFICATION_SOUND_SOURCES.length) {
+                        notificationAudio.dataset.sourceIndex = nextIndex.toString();
+                        notificationAudio.src = NOTIFICATION_SOUND_SOURCES[nextIndex];
+                        notificationAudio.load();
+                        if (activeNotificationSounds.size > 0) {
+                            notificationAudio.play().catch(() => {});
+                        }
+                    }
+                });
             }
             return notificationAudio;
         }
@@ -506,6 +518,18 @@
             }
             updateNotificationSound();
         }
+
+        document.addEventListener("pointerdown", () => {
+            const audio = getNotificationAudio();
+            audio.play()
+                .then(() => {
+                    if (activeNotificationSounds.size === 0) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                })
+                .catch(() => {});
+        }, { once: true });
 
         function getAssignedUnit() {
             return localStorage.getItem("assignedFiringUnit") || "A";
@@ -691,6 +715,10 @@
             }
             setNotificationSound("dfcs-target", visible);
             return visible;
+        }
+
+        function isTargetNotificationPending(payload, solution = null) {
+            return updateTargetReceivedNotification(payload, solution);
         }
 
         function readJsonStorage(key) {
@@ -1110,6 +1138,7 @@
                 : null;
 
             if (!solution || !payload || !payload.targetNumber) return;
+            if (isTargetNotificationPending(payload, solution)) return;
 
             setUnitReport("dfcsReadyState", {
                 unit: assignedUnit,
