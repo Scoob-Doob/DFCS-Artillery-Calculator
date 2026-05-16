@@ -508,22 +508,54 @@
     </div>
 
     <script>
-        const NOTIFICATION_SOUND_SRC = "../notificationbeep1.mp3";
+        const NOTIFICATION_SOUND_FILE = "notificationbeep1.mp3";
+        const NOTIFICATION_SOUND_SOURCES = Array.from(new Set([
+            window.location.pathname.includes("/.vscode/") ? `../${NOTIFICATION_SOUND_FILE}` : NOTIFICATION_SOUND_FILE,
+            `/${NOTIFICATION_SOUND_FILE}`,
+            `../${NOTIFICATION_SOUND_FILE}`
+        ]));
         let notificationAudio = null;
+        let notificationSoundSourceIndex = 0;
         const activeNotificationSounds = new Set();
         let notificationSoundEnabled = localStorage.getItem("notificationSoundEnabled") === "true";
 
+        function getNotificationSoundSrc() {
+            return NOTIFICATION_SOUND_SOURCES[notificationSoundSourceIndex] || NOTIFICATION_SOUND_FILE;
+        }
+
+        function resetNotificationAudio() {
+            if (!notificationAudio) return;
+            notificationAudio.pause();
+            notificationAudio.removeAttribute("src");
+            notificationAudio.load();
+            notificationAudio = null;
+        }
+
         function getNotificationAudio() {
             if (!notificationAudio) {
-                notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
+                const source = getNotificationSoundSrc();
+                notificationAudio = new Audio(source);
                 notificationAudio.loop = true;
                 notificationAudio.preload = "auto";
                 notificationAudio.addEventListener("error", () => {
-                    showSoundStatus(`Sound file failed to load: ${NOTIFICATION_SOUND_SRC}`);
+                    showSoundStatus(`Sound file failed to load: ${source}`);
                 });
                 notificationAudio.load();
             }
             return notificationAudio;
+        }
+
+        function playNotificationAudio() {
+            const audio = getNotificationAudio();
+            return audio.play().catch(error => {
+                if (error && error.name === "NotSupportedError" && notificationSoundSourceIndex < NOTIFICATION_SOUND_SOURCES.length - 1) {
+                    notificationSoundSourceIndex += 1;
+                    resetNotificationAudio();
+                    showSoundStatus(`Trying sound file: ${getNotificationSoundSrc()}`);
+                    return playNotificationAudio();
+                }
+                throw error;
+            });
         }
 
         function showSoundStatus(message = "") {
@@ -539,7 +571,7 @@
                 return "Sound blocked by browser. Press SOUND OFF/ON again or interact with this page.";
             }
             if (error.name === "NotSupportedError") {
-                return `Sound file not supported or not found: ${NOTIFICATION_SOUND_SRC}`;
+                return `Sound file not supported or not found: ${getNotificationSoundSrc()}`;
             }
             return `Sound failed: ${error.name || "Error"} ${error.message || ""}`.trim();
         }
@@ -564,11 +596,11 @@
                 return;
             }
 
-            const audio = getNotificationAudio();
-            audio.play()
+            playNotificationAudio()
                 .then(() => {
-                    showSoundStatus("Sound enabled.");
+                    showSoundStatus(`Sound enabled: ${getNotificationSoundSrc()}`);
                     if (activeNotificationSounds.size === 0) {
+                        const audio = getNotificationAudio();
                         audio.pause();
                         audio.currentTime = 0;
                     }
@@ -587,7 +619,7 @@
                 return;
             }
             if (activeNotificationSounds.size > 0) {
-                audio.play()
+                playNotificationAudio()
                     .then(() => showSoundStatus(""))
                     .catch(error => showSoundStatus(formatAudioError(error)));
             } else {
@@ -607,11 +639,11 @@
 
         document.addEventListener("pointerdown", () => {
             if (!notificationSoundEnabled) return;
-            const audio = getNotificationAudio();
-            audio.play()
+            playNotificationAudio()
                 .then(() => {
                     showSoundStatus("");
                     if (activeNotificationSounds.size === 0) {
+                        const audio = getNotificationAudio();
                         audio.pause();
                         audio.currentTime = 0;
                     }
