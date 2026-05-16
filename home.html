@@ -1882,7 +1882,7 @@
         const DEGREES_TO_MILS = 17.777777778;  // 6400 mils / 360 degrees
         const MILS_TO_DEGREES = 1 / DEGREES_TO_MILS;
         const TWO_B14_DATA_FILE = "2B14-mortar-ballistic-data.json";
-        const NOTIFICATION_SOUND_SOURCES = ["../notficationbeep1.mp3", "../notifcationbeep1.mp3"];
+        const NOTIFICATION_SOUND_SRC = "../notifcationbeep1.mp3";
 
         // Mission management
         let currentMissionName = null;
@@ -2408,20 +2408,8 @@
 
         function getNotificationAudio() {
             if (!notificationAudio) {
-                notificationAudio = new Audio(NOTIFICATION_SOUND_SOURCES[0]);
+                notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
                 notificationAudio.loop = true;
-                notificationAudio.dataset.sourceIndex = "0";
-                notificationAudio.addEventListener("error", () => {
-                    const nextIndex = parseInt(notificationAudio.dataset.sourceIndex || "0", 10) + 1;
-                    if (nextIndex < NOTIFICATION_SOUND_SOURCES.length) {
-                        notificationAudio.dataset.sourceIndex = nextIndex.toString();
-                        notificationAudio.src = NOTIFICATION_SOUND_SOURCES[nextIndex];
-                        notificationAudio.load();
-                        if (activeNotificationSounds.size > 0) {
-                            notificationAudio.play().catch(() => {});
-                        }
-                    }
-                });
             }
             return notificationAudio;
         }
