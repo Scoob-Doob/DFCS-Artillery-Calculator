@@ -241,6 +241,23 @@
             display: block;
         }
 
+        .sound-status {
+            display: none;
+            width: 100%;
+            border: 1px solid #ffcc00;
+            background-color: #1d1600;
+            color: #ffcc00;
+            padding: 8px 10px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-sizing: border-box;
+        }
+
+        .sound-status.visible {
+            display: block;
+        }
+
         .movement-button {
             min-width: 150px;
             background-color: #000;
@@ -454,6 +471,7 @@
                 <button class="deny-button" id="denyMissionButton" onclick="denyMission()" disabled>DENY</button>
                 <button class="ping-button" id="pingButton" onclick="sendPing()">PING</button>
                 <div class="command-status" id="commandStatus">Waiting for FDC firing data.</div>
+                <div class="sound-status" id="soundStatus"></div>
                 <div class="ping-status" id="pingStatus">Ping not sent.</div>
             </div>
 
@@ -485,15 +503,38 @@
                 notificationAudio = new Audio(NOTIFICATION_SOUND_SRC);
                 notificationAudio.loop = true;
                 notificationAudio.preload = "auto";
+                notificationAudio.addEventListener("error", () => {
+                    showSoundStatus(`Sound file failed to load: ${NOTIFICATION_SOUND_SRC}`);
+                });
                 notificationAudio.load();
             }
             return notificationAudio;
         }
 
+        function showSoundStatus(message = "") {
+            const soundStatus = document.getElementById("soundStatus");
+            if (!soundStatus) return;
+            soundStatus.classList.toggle("visible", Boolean(message));
+            soundStatus.innerText = message;
+        }
+
+        function formatAudioError(error) {
+            if (!error) return "Unknown audio error.";
+            if (error.name === "NotAllowedError") {
+                return "Sound blocked by browser. Click/tap this page once, then try the notification again.";
+            }
+            if (error.name === "NotSupportedError") {
+                return `Sound file not supported or not found: ${NOTIFICATION_SOUND_SRC}`;
+            }
+            return `Sound failed: ${error.name || "Error"} ${error.message || ""}`.trim();
+        }
+
         function updateNotificationSound() {
             const audio = getNotificationAudio();
             if (activeNotificationSounds.size > 0) {
-                audio.play().catch(() => {});
+                audio.play()
+                    .then(() => showSoundStatus(""))
+                    .catch(error => showSoundStatus(formatAudioError(error)));
             } else {
                 audio.pause();
                 audio.currentTime = 0;
@@ -513,12 +554,13 @@
             const audio = getNotificationAudio();
             audio.play()
                 .then(() => {
+                    showSoundStatus("");
                     if (activeNotificationSounds.size === 0) {
                         audio.pause();
                         audio.currentTime = 0;
                     }
                 })
-                .catch(() => {});
+                .catch(error => showSoundStatus(formatAudioError(error)));
         }, { once: true });
 
         function getAssignedUnit() {
