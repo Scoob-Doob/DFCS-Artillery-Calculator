@@ -187,8 +187,8 @@
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-    <script src="app/firebase-config.js"></script>
-    <script src="app/sync.js"></script>
+    <script src="app/firebase-config.js?v=20260517a"></script>
+    <script src="app/sync.js?v=20260517a"></script>
 </head>
 <body>
     <div class="container">
@@ -310,9 +310,12 @@
 
             const sessionCode = window.DFCS_SYNC ? window.DFCS_SYNC.getSessionCode() : "";
             const firebaseReady = window.DFCS_SYNC && window.DFCS_SYNC.isConfigured();
+            const syncDetail = window.DFCS_SYNC && window.DFCS_SYNC.getConfigStatus
+                ? window.DFCS_SYNC.getConfigStatus()
+                : "Sync script not loaded";
             const mode = firebaseReady
                 ? "Firebase internet sync"
-                : "LOCAL ONLY - Firebase config missing";
+                : `LOCAL ONLY - ${syncDetail}`;
             syncStatus.innerText = sessionCode
                 ? `${mode} - Session ${sessionCode}`
                 : `${mode} - Set a session code`;
