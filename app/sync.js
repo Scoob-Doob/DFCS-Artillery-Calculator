@@ -95,6 +95,15 @@
         );
     }
 
+    function getConfigStatus() {
+        if (!CONFIG.enabled) return "Firebase disabled";
+        if (!CONFIG.apiKey || CONFIG.apiKey.includes("PASTE_")) return "Firebase API key missing";
+        if (!CONFIG.databaseURL) return "Firebase database URL missing";
+        if (!window.firebase) return "Firebase SDK not loaded";
+        if (!window.firebase.database) return "Firebase database SDK not loaded";
+        return "Firebase ready";
+    }
+
     function getDb() {
         if (!isConfigured()) return null;
         if (!db) {
@@ -181,6 +190,7 @@
         getSessionCode,
         setSessionCode,
         isConfigured,
+        getConfigStatus,
         isOnline: () => Boolean(getDb() && getSessionCode()),
         sharedKeys: staticSharedKeys,
         start: listenToSharedKeys,
