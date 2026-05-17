@@ -1925,8 +1925,12 @@
         // Conversion constants
         const DEGREES_TO_MILS = 17.777777778;  // 6400 mils / 360 degrees
         const MILS_TO_DEGREES = 1 / DEGREES_TO_MILS;
+        const M777_BALLISTIC_DATA_FILE = "M777-ballistic-data.json";
         const MORTAR_BALLISTIC_DATA_FILE = "mortar-ballistic-data.json";
         const M252_BALLISTIC_DATA_FILE = "M252-ballistic-data.json";
+        const M777_BALLISTIC_DATA_FILES = {
+            "M777A2": M777_BALLISTIC_DATA_FILE,
+        };
         const MORTAR_BALLISTIC_DATA_FILES = {
             "2B14 Mortar": MORTAR_BALLISTIC_DATA_FILE,
             "M252 Mortar": M252_BALLISTIC_DATA_FILE,
@@ -1941,6 +1945,8 @@
         // Mission management
         let currentMissionName = null;
         let recordedTargets = JSON.parse(localStorage.getItem("recordedTargets") || "[]");
+        const m777BallisticDataCache = {};
+        const m777BallisticDataPromises = {};
         const mortarBallisticDataCache = {};
         const mortarBallisticDataPromises = {};
         let zuluClockInterval = null;
@@ -3251,8 +3257,16 @@
             return "";
         }
 
+        function getM777WeaponId(weaponSystem = getActiveWeaponSystem()) {
+            return weaponSystem === "M777A2" ? "M777A2" : "";
+        }
+
         function getMortarBallisticDataFile(weaponSystem = getActiveWeaponSystem()) {
             return MORTAR_BALLISTIC_DATA_FILES[weaponSystem] || "";
+        }
+
+        function getM777BallisticDataFile(weaponSystem = getActiveWeaponSystem()) {
+            return M777_BALLISTIC_DATA_FILES[weaponSystem] || "";
         }
 
         function isMortarBallisticSelected() {
@@ -4091,8 +4105,49 @@ ${getAmmoOptionsMarkup()}
             return mortarBallisticDataPromises[dataFile];
         }
 
+        async function loadM777BallisticData(weaponSystem = getActiveWeaponSystem()) {
+            const dataFile = getM777BallisticDataFile(weaponSystem);
+            if (!dataFile) {
+                return null;
+            }
+
+            if (m777BallisticDataCache[dataFile]) {
+                return m777BallisticDataCache[dataFile];
+            }
+
+            if (!m777BallisticDataPromises[dataFile]) {
+                m777BallisticDataPromises[dataFile] = fetch(dataFile)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Unable to load ${dataFile}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        m777BallisticDataCache[dataFile] = data;
+                        return data;
+                    })
+                    .catch(error => {
+                        m777BallisticDataPromises[dataFile] = null;
+                        throw error;
+                    });
+            }
+
+            return m777BallisticDataPromises[dataFile];
+        }
+
         function getMortarWeaponData(data, weaponSystem = getActiveWeaponSystem()) {
             const weaponId = getMortarWeaponId(weaponSystem);
+            if (data && data.id === weaponId) {
+                return data;
+            }
+            return data && Array.isArray(data.weaponSystems)
+                ? data.weaponSystems.find(system => system.id === weaponId)
+                : null;
+        }
+
+        function getM777WeaponData(data, weaponSystem = getActiveWeaponSystem()) {
+            const weaponId = getM777WeaponId(weaponSystem);
             if (data && data.id === weaponId) {
                 return data;
             }
@@ -4126,6 +4181,12 @@ ${getAmmoOptionsMarkup()}
                         range,
                         elevation: lower.elevation + (upper.elevation - lower.elevation) * ratio,
                         tof: lower.tof + (upper.tof - lower.tof) * ratio,
+                        dElev: lower.dElev !== undefined && upper.dElev !== undefined
+                            ? lower.dElev + (upper.dElev - lower.dElev) * ratio
+                            : lower.dElev,
+                        tofPer100m: lower.tofPer100m !== undefined && upper.tofPer100m !== undefined
+                            ? lower.tofPer100m + (upper.tofPer100m - lower.tofPer100m) * ratio
+                            : lower.tofPer100m,
                     };
                 }
             }
@@ -4170,6 +4231,58 @@ ${getAmmoOptionsMarkup()}
                 charge: charge.level,
                 elevation: interpolated.elevation,
                 time: interpolated.tof,
+                milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
+                outOfRange: false,
+            };
+        }
+
+        function getM777AutoCharge(range, weaponData) {
+            const autoRanges = Array.isArray(weaponData && weaponData.autoChargeMaxRanges)
+                ? [...weaponData.autoChargeMaxRanges].sort((a, b) => a.maxRange - b.maxRange)
+                : [];
+            const selected = autoRanges.find(item => range <= item.maxRange);
+            return selected ? selected.level : null;
+        }
+
+        function calculateM777FiringData(range, ammunitionType, heightDiffM, ballisticData, weaponSystem) {
+            const weaponData = getM777WeaponData(ballisticData, weaponSystem);
+            if (!weaponData) {
+                return null;
+            }
+
+            const shell = weaponData.shellTypes.find(shellType => shellType.type === ammunitionType)
+                || weaponData.shellTypes[0];
+            if (!shell || !Array.isArray(shell.charges)) {
+                return null;
+            }
+
+            const selectedLevel = getM777AutoCharge(range, weaponData);
+            const charge = shell.charges.find(item => item.level === selectedLevel);
+            if (!charge || range < charge.minRange || range > charge.maxRange) {
+                return {
+                    ammunition: shell.type,
+                    charge: selectedLevel || "N/A",
+                    elevation: "N/A",
+                    time: "N/A",
+                    milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
+                    outOfRange: true,
+                };
+            }
+
+            const interpolated = interpolateRangeTable(range, charge.rangeTable);
+            if (!interpolated) {
+                return null;
+            }
+
+            const heightHundreds = (Number(heightDiffM) || 0) / 100;
+            const elevation = interpolated.elevation - (Number(interpolated.dElev) || 0) * heightHundreds;
+            const time = interpolated.tof - (Number(interpolated.tofPer100m) || 0) * heightHundreds;
+
+            return {
+                ammunition: shell.type,
+                charge: charge.level,
+                elevation,
+                time,
                 milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
                 outOfRange: false,
             };
@@ -4780,7 +4893,17 @@ ${getEngagementControlsMarkup()}
             const fireUnits = getFireUnits();
             const velocity = systemConfig.projectileVelocity;
             const drag = systemConfig.dragCoefficient;
+            let m777Data = null;
             let mortarData = null;
+
+            if (getM777WeaponId(systemConfig.weaponSystem)) {
+                try {
+                    m777Data = await loadM777BallisticData(systemConfig.weaponSystem);
+                } catch (error) {
+                    alert(`Unable to load ${getM777BallisticDataFile(systemConfig.weaponSystem)}. Open the app through a local server so the JSON file can be read.`);
+                    return;
+                }
+            }
 
             if (getMortarWeaponId(systemConfig.weaponSystem)) {
                 try {
@@ -4912,31 +5035,37 @@ ${getEngagementControlsMarkup()}
                 const dy = aimPoint.y - gunPoint.y;
                 const range = Math.hypot(dx, dy);
                 const bearingDeg = calculateBearing(dx, dy);
+                const usesM777BallisticData = Boolean(getM777WeaponId(systemConfig.weaponSystem));
                 const usesMortarBallisticData = Boolean(getMortarWeaponId(systemConfig.weaponSystem));
                 const ammunitionType = getSelectedAmmunitionType();
+                const m777FiringData = usesM777BallisticData
+                    ? calculateM777FiringData(range, ammunitionType, targetAltitude - unit.altitude, m777Data, systemConfig.weaponSystem)
+                    : null;
                 const mortarFiringData = usesMortarBallisticData
                     ? calculateMortarFiringData(range, ammunitionType, mortarData, systemConfig.weaponSystem)
                     : null;
-                const elevationRad = usesMortarBallisticData ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag);
+                const tableFiringData = m777FiringData || mortarFiringData;
+                const usesTableFiringData = usesM777BallisticData || usesMortarBallisticData;
+                const elevationRad = usesTableFiringData ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag);
                 const elevationDeg = elevationRad === null ? null : elevationRad * 180 / Math.PI;
                 const timeOfFlight = elevationRad === null ? null : range / Math.max(0.1, velocity * Math.cos(elevationRad));
-                const bearingMils = mortarFiringData ? bearingDeg * ((mortarFiringData.milsPerCircle || 6400) / 360) : degreesToMils(bearingDeg);
+                const bearingMils = tableFiringData ? bearingDeg * ((tableFiringData.milsPerCircle || 6400) / 360) : degreesToMils(bearingDeg);
                 const elevationMils = elevationDeg === null ? null : degreesToMilsElevation(elevationDeg);
-                const timeOfFlightSeconds = mortarFiringData && !mortarFiringData.outOfRange
-                    ? mortarFiringData.time
+                const timeOfFlightSeconds = tableFiringData && !tableFiringData.outOfRange
+                    ? tableFiringData.time
                     : timeOfFlight;
 
                 solutions.push({
                     label: unit.label,
-                    ammunition: mortarFiringData ? mortarFiringData.ammunition : "",
+                    ammunition: tableFiringData ? tableFiringData.ammunition : "",
                     range: `${formatNumber(range, 1)} m`,
                     bearing: `${formatNumber(bearingMils, 0)} mils`,
-                    elevation: mortarFiringData
-                        ? (mortarFiringData.outOfRange ? "N/A" : `${formatNumber(mortarFiringData.elevation, 0)} mils`)
+                    elevation: tableFiringData
+                        ? (tableFiringData.outOfRange ? "N/A" : `${formatNumber(tableFiringData.elevation, 0)} mils`)
                         : (elevationMils === null ? "N/A" : `${formatNumber(elevationMils, 0)} mils`),
-                    charge: mortarFiringData ? mortarFiringData.charge : "",
-                    time: mortarFiringData
-                        ? (mortarFiringData.outOfRange ? "N/A" : `${formatNumber(mortarFiringData.time, 1)} s`)
+                    charge: tableFiringData ? tableFiringData.charge : "",
+                    time: tableFiringData
+                        ? (tableFiringData.outOfRange ? "N/A" : `${formatNumber(tableFiringData.time, 1)} s`)
                         : (timeOfFlight === null ? "N/A" : `${formatNumber(timeOfFlight, 2)} s`),
                     timeOfFlightSeconds,
                     countdown: timeOfFlightSeconds === null ? "" : getTimeOnTargetCountdown(timeOfFlightSeconds),
