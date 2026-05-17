@@ -1925,7 +1925,12 @@
         // Conversion constants
         const DEGREES_TO_MILS = 17.777777778;  // 6400 mils / 360 degrees
         const MILS_TO_DEGREES = 1 / DEGREES_TO_MILS;
-        const TWO_B14_DATA_FILE = "2B14-mortar-ballistic-data.json";
+        const MORTAR_BALLISTIC_DATA_FILE = "mortar-ballistic-data.json";
+        const M252_BALLISTIC_DATA_FILE = "M252-ballistic-data.json";
+        const MORTAR_BALLISTIC_DATA_FILES = {
+            "2B14 Mortar": MORTAR_BALLISTIC_DATA_FILE,
+            "M252 Mortar": M252_BALLISTIC_DATA_FILE,
+        };
         const NOTIFICATION_SOUND_FILE = "notificationbeep1.mp3";
         const NOTIFICATION_SOUND_SOURCES = Array.from(new Set([
             window.location.pathname.includes("/.vscode/") ? `../${NOTIFICATION_SOUND_FILE}` : NOTIFICATION_SOUND_FILE,
@@ -1936,8 +1941,8 @@
         // Mission management
         let currentMissionName = null;
         let recordedTargets = JSON.parse(localStorage.getItem("recordedTargets") || "[]");
-        let twoB14BallisticData = null;
-        let twoB14BallisticDataPromise = null;
+        const mortarBallisticDataCache = {};
+        const mortarBallisticDataPromises = {};
         let zuluClockInterval = null;
         let activeFiringSolutions = [];
         let lastProcessedLocationUpdateId = localStorage.getItem("lastProcessedLocationUpdateId") || "";
@@ -3240,12 +3245,22 @@
             return obj && obj[propertyName] !== undefined ? obj[propertyName] : defaultValue;
         }
 
-        function is2B14Selected() {
-            return getActiveWeaponSystem() === "2B14 Mortar";
+        function getMortarWeaponId(weaponSystem = getActiveWeaponSystem()) {
+            if (weaponSystem === "2B14 Mortar") return "2B14";
+            if (weaponSystem === "M252 Mortar") return "M252";
+            return "";
+        }
+
+        function getMortarBallisticDataFile(weaponSystem = getActiveWeaponSystem()) {
+            return MORTAR_BALLISTIC_DATA_FILES[weaponSystem] || "";
+        }
+
+        function isMortarBallisticSelected() {
+            return Boolean(getMortarWeaponId());
         }
 
         function getAmmoOptionsMarkup() {
-            if (is2B14Selected()) {
+            if (isMortarBallisticSelected()) {
                 return `
                             <option value="">HE</option>
                             <option value="HE">HE</option>
@@ -3264,7 +3279,7 @@
         }
 
         function getSelectedAmmunitionType() {
-            if (!is2B14Selected()) {
+            if (!isMortarBallisticSelected()) {
                 return getValue("ffe1Select", "");
             }
 
@@ -4045,35 +4060,44 @@ ${getAmmoOptionsMarkup()}
             };
         }
 
-        async function load2B14BallisticData() {
-            if (twoB14BallisticData) {
-                return twoB14BallisticData;
+        async function loadMortarBallisticData(weaponSystem = getActiveWeaponSystem()) {
+            const dataFile = getMortarBallisticDataFile(weaponSystem);
+            if (!dataFile) {
+                return null;
             }
 
-            if (!twoB14BallisticDataPromise) {
-                twoB14BallisticDataPromise = fetch(TWO_B14_DATA_FILE)
+            if (mortarBallisticDataCache[dataFile]) {
+                return mortarBallisticDataCache[dataFile];
+            }
+
+            if (!mortarBallisticDataPromises[dataFile]) {
+                mortarBallisticDataPromises[dataFile] = fetch(dataFile)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error(`Unable to load ${TWO_B14_DATA_FILE}`);
+                            throw new Error(`Unable to load ${dataFile}`);
                         }
                         return response.json();
                     })
                     .then(data => {
-                        twoB14BallisticData = data;
+                        mortarBallisticDataCache[dataFile] = data;
                         return data;
                     })
                     .catch(error => {
-                        twoB14BallisticDataPromise = null;
+                        mortarBallisticDataPromises[dataFile] = null;
                         throw error;
                     });
             }
 
-            return twoB14BallisticDataPromise;
+            return mortarBallisticDataPromises[dataFile];
         }
 
-        function get2B14WeaponData(data) {
+        function getMortarWeaponData(data, weaponSystem = getActiveWeaponSystem()) {
+            const weaponId = getMortarWeaponId(weaponSystem);
+            if (data && data.id === weaponId) {
+                return data;
+            }
             return data && Array.isArray(data.weaponSystems)
-                ? data.weaponSystems.find(system => system.id === "2B14")
+                ? data.weaponSystems.find(system => system.id === weaponId)
                 : null;
         }
 
@@ -4109,8 +4133,8 @@ ${getAmmoOptionsMarkup()}
             return null;
         }
 
-        function calculate2B14FiringData(range, ammunitionType, ballisticData) {
-            const weaponData = get2B14WeaponData(ballisticData);
+        function calculateMortarFiringData(range, ammunitionType, ballisticData, weaponSystem) {
+            const weaponData = getMortarWeaponData(ballisticData, weaponSystem);
             if (!weaponData) {
                 return null;
             }
@@ -4131,6 +4155,7 @@ ${getAmmoOptionsMarkup()}
                     charge: "N/A",
                     elevation: "N/A",
                     time: "N/A",
+                    milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
                     outOfRange: true,
                 };
             }
@@ -4145,6 +4170,7 @@ ${getAmmoOptionsMarkup()}
                 charge: charge.level,
                 elevation: interpolated.elevation,
                 time: interpolated.tof,
+                milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
                 outOfRange: false,
             };
         }
@@ -4754,13 +4780,13 @@ ${getEngagementControlsMarkup()}
             const fireUnits = getFireUnits();
             const velocity = systemConfig.projectileVelocity;
             const drag = systemConfig.dragCoefficient;
-            let twoB14Data = null;
+            let mortarData = null;
 
-            if (systemConfig.weaponSystem === "2B14 Mortar") {
+            if (getMortarWeaponId(systemConfig.weaponSystem)) {
                 try {
-                    twoB14Data = await load2B14BallisticData();
+                    mortarData = await loadMortarBallisticData(systemConfig.weaponSystem);
                 } catch (error) {
-                    alert(`Unable to load ${TWO_B14_DATA_FILE}. Open the app through a local server so the JSON file can be read.`);
+                    alert(`Unable to load ${getMortarBallisticDataFile(systemConfig.weaponSystem)}. Open the app through a local server so the JSON file can be read.`);
                     return;
                 }
             }
@@ -4886,31 +4912,31 @@ ${getEngagementControlsMarkup()}
                 const dy = aimPoint.y - gunPoint.y;
                 const range = Math.hypot(dx, dy);
                 const bearingDeg = calculateBearing(dx, dy);
-                const is2B14 = systemConfig.weaponSystem === "2B14 Mortar";
+                const usesMortarBallisticData = Boolean(getMortarWeaponId(systemConfig.weaponSystem));
                 const ammunitionType = getSelectedAmmunitionType();
-                const twoB14FiringData = is2B14
-                    ? calculate2B14FiringData(range, ammunitionType, twoB14Data)
+                const mortarFiringData = usesMortarBallisticData
+                    ? calculateMortarFiringData(range, ammunitionType, mortarData, systemConfig.weaponSystem)
                     : null;
-                const elevationRad = is2B14 ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag);
+                const elevationRad = usesMortarBallisticData ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag);
                 const elevationDeg = elevationRad === null ? null : elevationRad * 180 / Math.PI;
                 const timeOfFlight = elevationRad === null ? null : range / Math.max(0.1, velocity * Math.cos(elevationRad));
-                const bearingMils = is2B14 ? bearingDeg * (6000 / 360) : degreesToMils(bearingDeg);
+                const bearingMils = mortarFiringData ? bearingDeg * ((mortarFiringData.milsPerCircle || 6400) / 360) : degreesToMils(bearingDeg);
                 const elevationMils = elevationDeg === null ? null : degreesToMilsElevation(elevationDeg);
-                const timeOfFlightSeconds = twoB14FiringData && !twoB14FiringData.outOfRange
-                    ? twoB14FiringData.time
+                const timeOfFlightSeconds = mortarFiringData && !mortarFiringData.outOfRange
+                    ? mortarFiringData.time
                     : timeOfFlight;
 
                 solutions.push({
                     label: unit.label,
-                    ammunition: twoB14FiringData ? twoB14FiringData.ammunition : "",
+                    ammunition: mortarFiringData ? mortarFiringData.ammunition : "",
                     range: `${formatNumber(range, 1)} m`,
                     bearing: `${formatNumber(bearingMils, 0)} mils`,
-                    elevation: twoB14FiringData
-                        ? (twoB14FiringData.outOfRange ? "N/A" : `${formatNumber(twoB14FiringData.elevation, 0)} mils`)
+                    elevation: mortarFiringData
+                        ? (mortarFiringData.outOfRange ? "N/A" : `${formatNumber(mortarFiringData.elevation, 0)} mils`)
                         : (elevationMils === null ? "N/A" : `${formatNumber(elevationMils, 0)} mils`),
-                    charge: twoB14FiringData ? twoB14FiringData.charge : "",
-                    time: twoB14FiringData
-                        ? (twoB14FiringData.outOfRange ? "N/A" : `${formatNumber(twoB14FiringData.time, 1)} s`)
+                    charge: mortarFiringData ? mortarFiringData.charge : "",
+                    time: mortarFiringData
+                        ? (mortarFiringData.outOfRange ? "N/A" : `${formatNumber(mortarFiringData.time, 1)} s`)
                         : (timeOfFlight === null ? "N/A" : `${formatNumber(timeOfFlight, 2)} s`),
                     timeOfFlightSeconds,
                     countdown: timeOfFlightSeconds === null ? "" : getTimeOnTargetCountdown(timeOfFlightSeconds),
