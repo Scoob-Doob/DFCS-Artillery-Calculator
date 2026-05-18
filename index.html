@@ -19,6 +19,62 @@
             box-sizing: border-box;
         }
 
+        .version-panel {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            width: 220px;
+            z-index: 10;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .version-number {
+            text-align: right;
+            margin-bottom: 6px;
+            color: #9dffbf;
+        }
+
+        .changelog-toggle {
+            width: 100%;
+            padding: 8px 10px;
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .changelog-toggle:hover {
+            background-color: #003311;
+        }
+
+        .changelog-menu {
+            display: none;
+            margin-top: 6px;
+            padding: 10px;
+            border: 1px solid #00ff66;
+            background-color: #111;
+            box-shadow: 0 0 16px rgba(0,255,102,0.2);
+            max-height: 280px;
+            overflow-y: auto;
+            text-transform: none;
+            letter-spacing: 0;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        .changelog-menu.open {
+            display: block;
+        }
+
+        .changelog-menu a {
+            color: #9dffbf;
+        }
+
         .container {
             width: 460px;
             padding: 40px;
@@ -183,6 +239,16 @@
             h1 {
                 font-size: 22px;
             }
+
+            .version-panel {
+                position: static;
+                width: 100%;
+                margin-bottom: 14px;
+            }
+
+            .version-number {
+                text-align: center;
+            }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -191,6 +257,12 @@
     <script src="app/sync.js?v=20260517a"></script>
 </head>
 <body>
+    <div class="version-panel">
+        <div class="version-number">Version v0.1.0</div>
+        <button type="button" class="changelog-toggle" onclick="toggleChangelog()">Change Log</button>
+        <div class="changelog-menu" id="changelogMenu">Loading change log...</div>
+    </div>
+
     <div class="container">
         <h1>DIGITAL FIRE CONTROL SYSTEM</h1>
 
@@ -285,6 +357,25 @@
     <script>
         const UNIT_LABELS = ["A", "B", "C", "D"];
         const DFCS_PRESENCE_TIMEOUT_MS = 25000;
+        let changelogLoaded = false;
+
+        async function toggleChangelog() {
+            const menu = document.getElementById("changelogMenu");
+            if (!menu) return;
+            menu.classList.toggle("open");
+            if (!menu.classList.contains("open") || changelogLoaded) return;
+
+            try {
+                const response = await fetch("CHANGELOG.md", { cache: "no-store" });
+                if (!response.ok) throw new Error("Change log not found.");
+                const text = await response.text();
+                menu.textContent = text.trim() || "No change log entries yet.";
+                changelogLoaded = true;
+            } catch (error) {
+                menu.innerHTML = 'Unable to load inline. Open <a href="CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a>.';
+                changelogLoaded = true;
+            }
+        }
 
         function generateSessionCode() {
             return Math.floor(100000 + Math.random() * 900000).toString();
@@ -418,6 +509,16 @@
             }));
         }
 
+        function publishFiringUnitLocationUpdate(label, fdcCallsign, location) {
+            localStorage.setItem("firingUnitLocationUpdate", JSON.stringify({
+                unit: label,
+                fdcCallsign,
+                location,
+                updatedAt: new Date().toISOString(),
+                updateId: `${label}-${Date.now()}`,
+            }));
+        }
+
         function getSelectedFdcCallsign() {
             const firingUnitSelect = document.getElementById("firingUnitFdcCallsignInput");
             const fdcInput = document.getElementById("fdcCallsignInput");
@@ -531,6 +632,7 @@
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Altitude`, altitude);
             localStorage.setItem(`firingUnit${fdcCallsign}${label}OperationalStatus`, "stationary");
             writeDfcsPresence(label, fdcCallsign, true);
+            publishFiringUnitLocationUpdate(label, fdcCallsign, location);
 
             window.location.href = "app/unit-select.html";
         }
