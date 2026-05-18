@@ -22,19 +22,27 @@
         }
 
         .top-bar {
+            position: relative;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
             gap: 16px;
             margin-bottom: 24px;
             border-bottom: 2px solid #00ff66;
-            padding-bottom: 16px;
+            padding: 34px 0 16px;
         }
 
         h1 {
             margin: 0;
             font-size: 28px;
             letter-spacing: 2px;
+        }
+
+        .dfcs-title {
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 18px;
         }
 
         .assigned-name {
@@ -47,6 +55,15 @@
 
         .unit-location {
             min-width: 180px;
+        }
+
+        .zulu-time-display {
+            position: static;
+            transform: none;
+            flex: 0 0 120px;
+            margin: 0 auto;
+            min-width: 120px;
+            z-index: 1;
         }
 
         .assigned-name-label {
@@ -62,10 +79,36 @@
             letter-spacing: 2px;
         }
 
+        .zulu-time-display .assigned-name-value {
+            font-size: 20px;
+        }
+
         .nav-actions {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .left-nav-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: stretch;
+            flex: 0 0 88px;
+        }
+
+        .unit-select-btn {
+            order: 2;
+        }
+
+        .sound-toggle-btn {
+            order: 2;
+        }
+
+        .setup-btn {
+            order: 1;
         }
 
         .sound-toggle-btn {
@@ -291,7 +334,7 @@
 
         .moving-location-panel {
             display: none;
-            grid-template-columns: minmax(160px, 1fr) auto;
+            grid-template-columns: minmax(160px, 1fr) minmax(90px, 120px) auto;
             gap: 10px;
             align-items: end;
             margin-bottom: 20px;
@@ -353,6 +396,23 @@
             font-size: 34px;
             font-weight: bold;
             letter-spacing: 3px;
+        }
+
+        .check-firing-warning {
+            justify-content: center;
+            text-align: center;
+        }
+
+        .check-firing-warning .fire-warning-text {
+            font-size: 32px;
+        }
+
+        .check-firing-detail {
+            margin-top: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .shot-button {
@@ -418,6 +478,10 @@
                 align-items: stretch;
                 flex-direction: column;
             }
+
+            .moving-location-panel.visible {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -428,7 +492,11 @@
 <body>
     <div class="shell">
         <div class="top-bar">
-            <h1>DFCS</h1>
+            <h1 class="dfcs-title">DFCS</h1>
+            <div class="left-nav-actions">
+                <button class="setup-btn" onclick="window.location.href='../index.html'">SETUP</button>
+                <button class="unit-select-btn" onclick="window.location.href='unit-select.html'">UNIT</button>
+            </div>
             <div class="assigned-name">
                 <div class="assigned-name-label">UNIT ASSIGNED NAME</div>
                 <div class="assigned-name-value" id="unitAssignedNameDisplay">---</div>
@@ -437,10 +505,12 @@
                 <div class="assigned-name-label">UNIT LOCATION</div>
                 <div class="assigned-name-value" id="unitLocationDisplay">---</div>
             </div>
+            <div class="assigned-name zulu-time-display">
+                <div class="assigned-name-label">Z TIME</div>
+                <div class="assigned-name-value" id="dfcsZuluTimeDisplay">----</div>
+            </div>
             <div class="nav-actions">
                 <button type="button" class="sound-toggle-btn" id="soundToggleBtn" onclick="toggleNotificationSoundEnabled()">SOUND OFF</button>
-                <button onclick="window.location.href='unit-select.html'">UNIT SELECT</button>
-                <button onclick="window.location.href='../index.html'">SETUP</button>
             </div>
         </div>
 
@@ -464,7 +534,7 @@
                     <div class="target-notification-title">FDC PING</div>
                     <div class="target-notification-detail" id="fdcPingText">Ping received from FDC.</div>
                 </div>
-                <button type="button" onclick="acknowledgeFdcPing()">ACKNOWLEDGE</button>
+                <button type="button" id="fdcPingAcknowledgeButton" onclick="acknowledgeFdcPing()">ACKNOWLEDGE</button>
             </div>
 
             <div class="summary-grid">
@@ -494,12 +564,23 @@
                     <label for="movingLocationInput">Moving Location</label>
                     <input id="movingLocationInput" type="text" maxlength="10" placeholder="10 figure grid">
                 </div>
+                <div>
+                    <label for="movingAltitudeInput">Altitude</label>
+                    <input id="movingAltitudeInput" type="number" min="0" max="999" placeholder="m">
+                </div>
                 <button type="button" onclick="applyMovingLocation()">APPLY</button>
             </div>
 
             <div class="fire-warning" id="fireWarning">
                 <div class="fire-warning-text">FIRE</div>
                 <button class="shot-button" id="shotButton" onclick="sendShot()">SHOT</button>
+            </div>
+
+            <div class="fire-warning check-firing-warning" id="checkFiringWarning">
+                <div>
+                    <div class="fire-warning-text">CHECK FIRING</div>
+                    <div class="check-firing-detail">Hold fire until cancelled by FDC</div>
+                </div>
             </div>
 
             <div class="firing-grid" id="firingDataGrid"></div>
@@ -519,6 +600,18 @@
         const activeNotificationSounds = new Set();
         let notificationSoundEnabled = localStorage.getItem("notificationSoundEnabled") === "true";
 
+        function getNotificationVolume() {
+            const stored = parseInt(localStorage.getItem("notificationVolume") || "100", 10);
+            const safeValue = Number.isNaN(stored) ? 100 : Math.max(0, Math.min(100, stored));
+            return safeValue / 100;
+        }
+
+        function applyNotificationVolume() {
+            if (notificationAudio) {
+                notificationAudio.volume = getNotificationVolume();
+            }
+        }
+
         function getNotificationSoundSrc() {
             return NOTIFICATION_SOUND_SOURCES[notificationSoundSourceIndex] || NOTIFICATION_SOUND_FILE;
         }
@@ -537,6 +630,7 @@
                 notificationAudio = new Audio(source);
                 notificationAudio.loop = true;
                 notificationAudio.preload = "auto";
+                notificationAudio.volume = getNotificationVolume();
                 notificationAudio.addEventListener("error", () => {
                     showSoundStatus(`Sound file failed to load: ${source}`);
                 });
@@ -592,13 +686,13 @@
                 const audio = getNotificationAudio();
                 audio.pause();
                 audio.currentTime = 0;
-                showSoundStatus("Sound off.");
+                showSoundStatus("");
                 return;
             }
 
             playNotificationAudio()
                 .then(() => {
-                    showSoundStatus(`Sound enabled: ${getNotificationSoundSrc()}`);
+                    showSoundStatus("");
                     if (activeNotificationSounds.size === 0) {
                         const audio = getNotificationAudio();
                         audio.pause();
@@ -650,6 +744,47 @@
                 })
                 .catch(error => showSoundStatus(formatAudioError(error)));
         }, { once: true });
+
+        function parseMilitaryTimeToSeconds(value) {
+            const digits = String(value || "").replace(/\D/g, "");
+            if (digits.length !== 4 && digits.length !== 6) return null;
+            const hours = parseInt(digits.slice(0, 2), 10);
+            const minutes = parseInt(digits.slice(2, 4), 10);
+            const seconds = digits.length === 6 ? parseInt(digits.slice(4, 6), 10) : 0;
+            if (hours > 23 || minutes > 59 || seconds > 59) return null;
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+
+        function getSystemZuluSeconds() {
+            const now = new Date();
+            return now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+        }
+
+        function formatZuluSecondsForDisplay(totalSeconds) {
+            const secondsInDay = 24 * 60 * 60;
+            const safeSeconds = ((Math.floor(totalSeconds) % secondsInDay) + secondsInDay) % secondsInDay;
+            const hours = Math.floor(safeSeconds / 3600);
+            const minutes = Math.floor((safeSeconds % 3600) / 60);
+            const seconds = safeSeconds % 60;
+            return `${hours.toString().padStart(2, "0")}${minutes.toString().padStart(2, "0")}${seconds.toString().padStart(2, "0")}Z`;
+        }
+
+        function getActiveZuluSeconds() {
+            const markedZuluTime = localStorage.getItem("zuluTime");
+            if (!markedZuluTime) return getSystemZuluSeconds();
+            const markedSeconds = parseMilitaryTimeToSeconds(markedZuluTime);
+            const markedAt = parseInt(localStorage.getItem("zuluTimeMarkedAt") || "", 10);
+            if (markedSeconds === null) return getSystemZuluSeconds();
+            if (Number.isNaN(markedAt)) return markedSeconds;
+            return markedSeconds + Math.floor((Date.now() - markedAt) / 1000);
+        }
+
+        function updateDfcsZuluTimeDisplay() {
+            const display = document.getElementById("dfcsZuluTimeDisplay");
+            if (display) {
+                display.innerText = formatZuluSecondsForDisplay(getActiveZuluSeconds());
+            }
+        }
 
         function getAssignedUnit() {
             return localStorage.getItem("assignedFiringUnit") || "A";
@@ -706,39 +841,67 @@
             return (value || "").replace(/\D/g, "").slice(0, 10);
         }
 
+        function normalizeAltitudeInput(value) {
+            const altitude = parseInt(String(value || "").replace(/\D/g, ""), 10);
+            if (Number.isNaN(altitude)) return "";
+            return String(Math.max(0, Math.min(999, altitude)));
+        }
+
         function getCurrentUnitLocation(unit = getAssignedUnit()) {
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}Location`) || "";
+        }
+
+        function getCurrentUnitAltitude(unit = getAssignedUnit()) {
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}Altitude`) || "";
         }
 
         function getPendingMovingLocation(unit = getAssignedUnit()) {
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingLocation`) || "";
         }
 
+        function getPendingMovingAltitude(unit = getAssignedUnit()) {
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingAltitude`) || "";
+        }
+
         function applyMovingLocation() {
             const assignedUnit = getAssignedUnit();
-            const input = document.getElementById("movingLocationInput");
-            const grid = normalizeGridInput(input && input.value);
+            const locationInput = document.getElementById("movingLocationInput");
+            const altitudeInput = document.getElementById("movingAltitudeInput");
+            const grid = normalizeGridInput(locationInput && locationInput.value);
+            const altitude = normalizeAltitudeInput(altitudeInput && altitudeInput.value);
             if (grid.length !== 10) {
                 alert("Enter a 10 figure grid.");
                 return;
             }
+            if (!altitude) {
+                alert("Enter the moving altitude.");
+                return;
+            }
 
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`, grid);
-            if (input) input.value = grid;
+            localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingAltitude`, altitude);
+            if (locationInput) locationInput.value = grid;
+            if (altitudeInput) altitudeInput.value = altitude;
             renderDfcs();
         }
 
         function sendStationaryLocationUpdate() {
             const assignedUnit = getAssignedUnit();
             const pendingGrid = getPendingMovingLocation(assignedUnit);
+            const pendingAltitude = getPendingMovingAltitude(assignedUnit);
             if (!pendingGrid) return;
 
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Location`, pendingGrid);
+            if (pendingAltitude) {
+                localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Altitude`, pendingAltitude);
+            }
             localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`);
+            localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingAltitude`);
             localStorage.setItem("firingUnitLocationUpdate", JSON.stringify({
                 unit: assignedUnit,
                 fdcCallsign: getAssignedFdcCallsign(),
                 location: pendingGrid,
+                altitude: pendingAltitude,
                 updatedAt: new Date().toISOString(),
                 updateId: `${assignedUnit}-${Date.now()}`,
             }));
@@ -748,13 +911,20 @@
             const currentStatus = getUnitOperationalStatus();
             const nextStatus = currentStatus === "stationary" ? "moving" : "stationary";
             if (currentStatus === "moving" && nextStatus === "stationary") {
-                const input = document.getElementById("movingLocationInput");
-                const grid = normalizeGridInput((input && input.value) || getPendingMovingLocation());
+                const locationInput = document.getElementById("movingLocationInput");
+                const altitudeInput = document.getElementById("movingAltitudeInput");
+                const grid = normalizeGridInput((locationInput && locationInput.value) || getPendingMovingLocation());
+                const altitude = normalizeAltitudeInput((altitudeInput && altitudeInput.value) || getPendingMovingAltitude() || getCurrentUnitAltitude());
                 if (grid.length !== 10) {
                     alert("Enter and apply a 10 figure grid before setting stationary.");
                     return;
                 }
+                if (!altitude) {
+                    alert("Enter and apply an altitude before setting stationary.");
+                    return;
+                }
                 localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingLocation`, grid);
+                localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingAltitude`, altitude);
                 sendStationaryLocationUpdate();
             }
 
@@ -847,6 +1017,35 @@
             } catch (error) {
                 return null;
             }
+        }
+
+        function getCheckFiringState() {
+            const state = readJsonStorage("checkFiringState");
+            if (!state || !state.active || state.fdcCallsign !== getAssignedFdcCallsign()) {
+                return null;
+            }
+            return state;
+        }
+
+        function isCheckFiringActive() {
+            return Boolean(getCheckFiringState());
+        }
+
+        function applyCheckFiringButtonLockout(active) {
+            document.querySelectorAll(".panel button").forEach(button => {
+                if (button.id === "pingButton" || button.id === "fdcPingAcknowledgeButton") {
+                    return;
+                }
+                if (!active) {
+                    if (button.dataset.checkFiringLocked === "true") {
+                        button.disabled = false;
+                        delete button.dataset.checkFiringLocked;
+                    }
+                    return;
+                }
+                button.dataset.checkFiringLocked = "true";
+                button.disabled = true;
+            });
         }
 
         function getLatestFiringPayload() {
@@ -1113,6 +1312,7 @@
                 unitAssignedName: getUnitAssignedName(),
                 sentAt: new Date().toISOString(),
                 location: getCurrentUnitLocation(assignedUnit),
+                altitude: getCurrentUnitAltitude(assignedUnit),
                 operationalStatus: getUnitOperationalStatus(assignedUnit),
             };
             localStorage.setItem("dfcsPing", JSON.stringify(ping));
@@ -1347,16 +1547,22 @@
             const readyButton = document.getElementById("readyButton");
             const commandStatus = document.getElementById("commandStatus");
             const fireWarning = document.getElementById("fireWarning");
+            const checkFiringWarning = document.getElementById("checkFiringWarning");
             const shotButton = document.getElementById("shotButton");
             const roundsCompleteButton = document.getElementById("roundsCompleteButton");
             const denyMissionButton = document.getElementById("denyMissionButton");
             const movementButton = document.getElementById("movementButton");
             const movingLocationPanel = document.getElementById("movingLocationPanel");
             const movingLocationInput = document.getElementById("movingLocationInput");
+            const movingAltitudeInput = document.getElementById("movingAltitudeInput");
             const endMissionReportPanel = document.getElementById("endMissionReportPanel");
             const endMissionReportText = document.getElementById("endMissionReportText");
             const operationalStatus = getUnitOperationalStatus(assignedUnit);
             const targetNotificationActive = updateTargetReceivedNotification(payload, solution);
+            const checkFiringActive = isCheckFiringActive();
+            if (!checkFiringActive) {
+                applyCheckFiringButtonLockout(false);
+            }
 
             if (endMissionReportPanel) {
                 endMissionReportPanel.classList.toggle("active", endMissionActive);
@@ -1390,6 +1596,9 @@
             if (movingLocationInput && document.activeElement !== movingLocationInput) {
                 movingLocationInput.value = getPendingMovingLocation(assignedUnit) || getCurrentUnitLocation(assignedUnit);
             }
+            if (movingAltitudeInput && document.activeElement !== movingAltitudeInput) {
+                movingAltitudeInput.value = getPendingMovingAltitude(assignedUnit) || getCurrentUnitAltitude(assignedUnit);
+            }
             fireWarning.classList.remove("active");
             shotButton.classList.toggle("sent", isShotSent);
             shotButton.innerText = isShotSent ? "SHOT SENT" : "SHOT";
@@ -1398,6 +1607,7 @@
             roundsCompleteButton.classList.toggle("sent", isRoundsComplete);
             roundsCompleteButton.innerText = isRoundsComplete ? "ROUNDS COMPLETE SENT" : "ROUNDS COMPLETE";
             denyMissionButton.disabled = !solution;
+            checkFiringWarning.classList.toggle("active", checkFiringActive);
 
             if (isRoundsComplete) {
                 commandStatus.innerText = "Rounds complete sent to FDC.";
@@ -1415,17 +1625,31 @@
                 commandStatus.innerText = "Waiting for FDC firing data.";
             }
 
+            if (checkFiringActive) {
+                readyButton.disabled = true;
+                movementButton.disabled = true;
+                shotButton.disabled = true;
+                roundsCompleteButton.disabled = true;
+                denyMissionButton.disabled = true;
+                fireWarning.classList.remove("active");
+                setNotificationSound("dfcs-fire", false);
+                commandStatus.innerText = "CHECK FIRING active. Await FDC.";
+            } else {
+                movementButton.disabled = false;
+            }
+
             if (!solution) {
                 setNotificationSound("dfcs-fire", false);
                 grid.innerHTML = "";
                 emptyState.style.display = "block";
+                applyCheckFiringButtonLockout(checkFiringActive);
                 return;
             }
 
             const fireCountdown = getFireCountdown(payload, solution);
             const totFireCommanded = isCountdownFireNow(payload, solution);
             const whenReadyFireCommanded = isReady && isWhenReadyFireNow(payload);
-            const showFireWarning = Boolean(solution && !isShotSent && (isFireCommanded || whenReadyFireCommanded || (isReady && totFireCommanded)));
+            const showFireWarning = Boolean(!checkFiringActive && solution && !isShotSent && (isFireCommanded || whenReadyFireCommanded || (isReady && totFireCommanded)));
             fireWarning.classList.toggle("active", showFireWarning);
             shotButton.disabled = !showFireWarning;
             setNotificationSound("dfcs-fire", showFireWarning);
@@ -1434,6 +1658,7 @@
             } else if (showFireWarning && payload.engagementTiming === "When Ready") {
                 commandStatus.innerText = "Ready complete.";
             }
+            applyCheckFiringButtonLockout(checkFiringActive);
             emptyState.style.display = "none";
             grid.innerHTML = [
                 addDataItem("Bearing", solution.bearing),
@@ -1449,8 +1674,11 @@
         }
 
         updateSoundToggleButton();
+        applyNotificationVolume();
+        updateDfcsZuluTimeDisplay();
         writeDfcsPresence(true);
         renderDfcs();
+        setInterval(updateDfcsZuluTimeDisplay, 1000);
         setInterval(renderDfcs, 1000);
         setInterval(() => writeDfcsPresence(true), 5000);
     </script>

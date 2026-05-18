@@ -187,6 +187,20 @@
             }));
         }
 
+        function publishFiringUnitLocationUpdate(label = localStorage.getItem("assignedFiringUnit") || "A") {
+            const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
+            const prefix = `firingUnit${fdcCallsign}${label}`;
+            const location = localStorage.getItem(`${prefix}Location`) || "";
+            if (!location) return;
+            localStorage.setItem("firingUnitLocationUpdate", JSON.stringify({
+                unit: label,
+                fdcCallsign,
+                location,
+                updatedAt: new Date().toISOString(),
+                updateId: `${label}-${Date.now()}`,
+            }));
+        }
+
         function getFireUnits() {
             const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
             const assignedUnit = localStorage.getItem("assignedFiringUnit") || "A";
@@ -210,6 +224,8 @@
         function setAssignedUnit(label) {
             localStorage.setItem("assignedFiringUnit", label);
             localStorage.setItem("assignedFdcCallsign", localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1");
+            writeDfcsPresence();
+            publishFiringUnitLocationUpdate(label);
             window.location.href = "dfcs.html";
         }
 

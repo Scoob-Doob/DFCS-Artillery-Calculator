@@ -35,10 +35,12 @@
 
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: clamp(8px, 1vw, 14px);
 
-            padding: 0 30px 0 140px;
+            padding: 0 18px 0 58px;
             box-sizing: border-box;
+            overflow: visible;
 
             z-index: 1000;
 
@@ -49,6 +51,16 @@
 
         .top-bar.collapsed {
             left: 0;
+        }
+
+        .header-zulu-time {
+            position: static;
+            transform: none;
+            flex: 0 0 108px;
+            text-align: center;
+            min-width: 110px;
+            margin: 0 clamp(4px, 1vw, 14px);
+            z-index: 1;
         }
 
         .sidebar-toggle {
@@ -77,7 +89,9 @@
             cursor: pointer;
             font-size: 14px;
             border-radius: 4px;
-            margin-right: 12px;
+            margin-right: 0;
+            white-space: nowrap;
+            flex: 0 0 auto;
         }
 
         .nav-button:hover {
@@ -86,14 +100,16 @@
 
         .dropdowns {
             display: flex;
-            gap: 20px;
+            gap: 8px;
+            margin-left: 0;
+            flex: 0 0 auto;
         }
 
         .top-bar:not(.collapsed) .dropdowns {
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: flex-end;
             gap: 8px;
-            margin-right: 12px;
+            margin-right: 0;
         }
 
         .dropdown {
@@ -105,10 +121,10 @@
             background-color: #000;
             color: #00ff66;
             border: 1px solid #00ff66;
-            padding: 10px 15px;
+            padding: 9px 12px;
             cursor: pointer;
             font-size: 14px;
-            min-width: 120px;
+            min-width: 108px;
         }
 
         .dropdown-button:hover {
@@ -116,7 +132,7 @@
         }
 
         .dropdown-content {
-            display: none;
+            display: block;
             position: absolute;
             top: 100%;
             left: auto;
@@ -129,10 +145,19 @@
             box-shadow: 0 0 10px rgba(0,255,102,0.2);
             box-sizing: border-box;
             z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-8px) scaleY(0.96);
+            transform-origin: top;
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
         }
 
         .dropdown:hover .dropdown-content {
-            display: block;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scaleY(1);
         }
 
         .dropdown-content h4 {
@@ -158,11 +183,13 @@
         .top-item {
             display: flex;
             flex-direction: column;
-            min-width: 180px;
+            flex: 1 1 160px;
+            min-width: 130px;
+            max-width: 280px;
         }
 
         .top-item.compact {
-            min-width: 100px;
+            min-width: 108px;
         }
 
         .top-label {
@@ -202,9 +229,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-left: 4px;
-            margin-right: 8px;
+            margin-left: auto;
+            margin-right: 0;
             position: relative;
+            flex-wrap: nowrap;
+            flex: 0 0 auto;
         }
 
         .checkbox-label {
@@ -260,12 +289,44 @@
             background-color: #cc3333;
         }
 
+        .check-firing-button {
+            background-color: #3a0000;
+            color: #ff8080;
+            border: 1px solid #ff3030;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .check-firing-button.active {
+            background-color: #ff3030;
+            color: #fff;
+            border-color: #fff;
+            animation: checkFiringFlash 0.8s steps(2, start) infinite;
+        }
+
+        @keyframes checkFiringFlash {
+            0%, 100% {
+                background-color: #3a0000;
+                color: #ff8080;
+                border-color: #ff3030;
+            }
+            50% {
+                background-color: #ff3030;
+                color: #fff;
+                border-color: #fff;
+            }
+        }
+
         .end-mission-control {
             position: relative;
         }
 
         .end-mission-menu {
-            display: none;
+            display: block;
             position: absolute;
             top: calc(100% + 6px);
             right: 0;
@@ -275,10 +336,19 @@
             background-color: #000;
             box-shadow: 0 0 12px rgba(0,255,102,0.18);
             z-index: 40;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-8px) scaleY(0.96);
+            transform-origin: top;
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
         }
 
         .end-mission-menu.open {
-            display: block;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scaleY(1);
         }
 
         .end-mission-menu label {
@@ -323,6 +393,7 @@
             font-weight: bold;
             border-radius: 4px;
             white-space: nowrap;
+            flex: 0 0 auto;
         }
 
         .sound-toggle-btn.enabled {
@@ -331,7 +402,8 @@
             border-color: #00ff66;
         }
 
-        .recorded-targets-panel {
+        .recorded-targets-panel,
+        .fireplan-panel {
             padding: 20px;
             background-color: #111;
             border: 2px solid #00ff66;
@@ -339,12 +411,380 @@
             margin-top: 20px;
         }
 
-        .recorded-targets-panel h3 {
+        .recorded-targets-panel h3,
+        .fireplan-panel h3 {
             margin-top: 0;
             margin-bottom: 20px;
             font-size: 18px;
             letter-spacing: 1px;
             color: #00ff66;
+        }
+
+        .fireplan-empty {
+            border: 1px dashed #00ff66;
+            background-color: #000;
+            padding: 24px;
+            color: #9dffbf;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .fireplan-title {
+            margin: 0 0 18px;
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .fireplan-meta {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .fireplan-meta label {
+            color: #9dffbf;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .fireplan-h-hour-input {
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid rgba(0, 255, 102, 0.55);
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .fireplan-h-hour-input {
+            width: 96px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .fireplan-action-btn {
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            padding: 8px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .fireplan-action-btn:hover {
+            background-color: #003311;
+        }
+
+        .fireplan-cell-input {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            background-color: transparent;
+            color: #00ff66;
+            border: 1px solid transparent;
+            border-radius: 0;
+            font-family: monospace;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .fireplan-cell-input {
+            min-height: 38px;
+            padding: 8px;
+        }
+
+        .fireplan-h-hour-input:focus {
+            border-color: #00ff66;
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.28);
+        }
+
+        .fireplan-cell-input:focus {
+            background-color: rgba(0, 255, 102, 0.08);
+        }
+
+        .fireplan-table-wrap {
+            overflow-x: auto;
+            margin-bottom: 24px;
+        }
+
+        .fireplan-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            background-color: #000;
+            color: #00ff66;
+        }
+
+        .fireplan-table th,
+        .fireplan-table td {
+            border: 1px solid #00ff66;
+            padding: 5px;
+            height: 38px;
+            vertical-align: top;
+        }
+
+        .fireplan-target-table td {
+            padding: 0;
+        }
+
+        .fireplan-table th {
+            background-color: #222;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .fireplan-table td {
+            background-color: #050805;
+        }
+
+        .fireplan-target-table th:nth-child(1) { width: 14%; }
+        .fireplan-target-table th:nth-child(2) { width: 24%; }
+        .fireplan-target-table th:nth-child(3) { width: 18%; }
+        .fireplan-target-table th:nth-child(4) { width: 12%; }
+        .fireplan-target-table th:nth-child(5) { width: 32%; }
+
+        .fireplan-schedule-table th:nth-child(1) { width: 14%; }
+        .fireplan-schedule-table th:nth-child(2) { width: 16%; }
+        .fireplan-schedule-table th:nth-child(3) { width: 52%; }
+        .fireplan-schedule-table th:nth-child(4) { width: 18%; }
+
+        .fireplan-schedule-table td {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+            letter-spacing: 1px;
+        }
+
+        .fireplan-schedule-table td.fireplan-schedule-remarks-cell {
+            padding: 6px;
+            color: #9dffbf;
+            font-size: 10px;
+            font-weight: normal;
+            line-height: 1.25;
+            letter-spacing: 0;
+            text-align: left;
+            vertical-align: top;
+            overflow: hidden;
+        }
+
+        .fireplan-schedule-remark {
+            margin-bottom: 4px;
+        }
+
+        .fireplan-schedule-remark strong {
+            color: #00ff66;
+            font-weight: bold;
+        }
+
+        .schedule-cell {
+            position: relative;
+            height: 76px;
+            min-height: 76px;
+            padding: 0;
+            cursor: crosshair;
+            overflow-x: auto;
+            overflow-y: hidden;
+            background: #050805;
+            scrollbar-width: none;
+        }
+
+        .schedule-cell::before {
+            content: none;
+        }
+
+        .schedule-cell::-webkit-scrollbar {
+            display: none;
+        }
+
+        .schedule-scale {
+            position: relative;
+            width: var(--schedule-scale-width, 1200px);
+            min-width: var(--schedule-scale-width, 1200px);
+            height: 100%;
+        }
+
+        .schedule-marker {
+            position: absolute;
+            top: 8px;
+            bottom: 18px;
+            width: 1px;
+            transform: translateX(-50%);
+            background-color: rgba(0, 255, 102, 0.35);
+            z-index: 1;
+        }
+
+        .schedule-marker.major {
+            top: 0;
+            bottom: 13px;
+            width: 2px;
+            background-color: rgba(0, 255, 102, 0.78);
+        }
+
+        .schedule-label {
+            position: absolute;
+            bottom: 2px;
+            transform: translateX(-50%);
+            color: #9dffbf;
+            font-size: 9px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .schedule-assignment {
+            position: absolute;
+            top: 15px;
+            height: 20px;
+            min-width: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 4px;
+            border: 1px solid #00ff66;
+            background-color: rgba(0, 255, 102, 0.22);
+            color: #00ff66;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 1;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .schedule-assignment-target {
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .schedule-assignment-target {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .schedule-assignment:hover {
+            background-color: rgba(0, 255, 102, 0.36);
+        }
+
+        .schedule-current-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+            background-color: #ff3333;
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.8);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .schedule-current-marker::before {
+            content: "Z";
+            position: absolute;
+            top: 1px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff3333;
+            background-color: #050805;
+            border: 1px solid #ff3333;
+            padding: 1px 4px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .fireplan-schedule-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.76);
+            z-index: 3000;
+        }
+
+        .fireplan-schedule-overlay.open {
+            display: flex;
+        }
+
+        .fireplan-schedule-popup {
+            width: min(360px, calc(100vw - 32px));
+            border: 2px solid #00ff66;
+            background-color: #111;
+            padding: 18px;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.22);
+        }
+
+        .fireplan-schedule-popup h4 {
+            margin: 0 0 14px;
+            color: #00ff66;
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .fireplan-schedule-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .fireplan-schedule-grid .input-group:first-child {
+            grid-column: 1 / -1;
+        }
+
+        .fireplan-schedule-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .fireplan-schedule-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .fireplan-schedule-actions button {
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .fireplan-schedule-actions button:hover {
+            background-color: #003311;
+        }
+
+        .fireplan-schedule-actions .delete-schedule-btn {
+            margin-right: auto;
+            border-color: #ff3333;
+            color: #ff3333;
         }
 
         .settings-panel {
@@ -354,7 +794,7 @@
             border: 2px solid #00ff66;
             border-radius: 8px;
             margin-top: 20px;
-            max-width: 520px;
+            max-width: 980px;
         }
 
         .settings-panel h3 {
@@ -365,21 +805,23 @@
             color: #00ff66;
         }
 
-        .settings-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: flex-end;
+        .settings-layout {
+            display: grid;
+            grid-template-columns: minmax(320px, 1fr) minmax(280px, 0.9fr);
+            gap: 16px;
+            align-items: start;
         }
 
-        .settings-row .input-group {
-            flex: 1;
-            min-width: 160px;
-            margin-bottom: 0;
+        .settings-column {
+            display: grid;
+            gap: 16px;
         }
 
         .settings-section {
-            margin-top: 24px;
+            border: 1px solid #00ff66;
+            background-color: #000;
+            padding: 14px;
+            border-radius: 4px;
         }
 
         .settings-section h4 {
@@ -395,8 +837,85 @@
             align-items: end;
         }
 
+        .settings-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .settings-row .input-group {
+            flex: 1;
+            min-width: 160px;
+            margin-bottom: 0;
+        }
+
         .target-block-grid .input-group {
             margin-bottom: 0;
+        }
+
+        .met-data-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .met-data-grid .input-group {
+            margin-bottom: 0;
+        }
+
+        .met-data-grid input[type="range"] {
+            padding: 0;
+            accent-color: #00ff66;
+        }
+
+        .settings-section input[type="range"] {
+            height: 8px;
+            padding: 0;
+            border: 1px solid #00ff66;
+            border-radius: 0;
+            background: #000;
+            accent-color: #00ff66;
+            cursor: pointer;
+        }
+
+        .settings-section input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            background: linear-gradient(90deg, rgba(0, 255, 102, 0.28), rgba(0, 255, 102, 0.08));
+        }
+
+        .settings-section input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 18px;
+            margin-top: -6px;
+            background: #00ff66;
+            border: 1px solid #9dffbf;
+            border-radius: 0;
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.55);
+        }
+
+        .settings-section input[type="range"]::-moz-range-track {
+            height: 6px;
+            background: linear-gradient(90deg, rgba(0, 255, 102, 0.28), rgba(0, 255, 102, 0.08));
+        }
+
+        .settings-section input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 18px;
+            background: #00ff66;
+            border: 1px solid #9dffbf;
+            border-radius: 0;
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.55);
+        }
+
+        .range-value {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: #00ff66;
         }
 
         .recorded-targets-list {
@@ -410,6 +929,7 @@
 
         .recorded-targets-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             background-color: #111;
             color: #00ff66;
@@ -428,6 +948,25 @@
             padding: 12px;
             border: 1px solid #00ff66;
             vertical-align: middle;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .target-list-target-row,
+        .recorded-target-row {
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .target-list-target-row:hover,
+        .recorded-target-row:hover {
+            background-color: #00220d;
+        }
+
+        .target-list-target-row.selected,
+        .recorded-target-row.selected {
+            background-color: rgba(0, 255, 102, 0.18);
+            color: #9dffbf;
         }
 
         .recorded-targets-panel-header {
@@ -443,10 +982,26 @@
             gap: 10px;
         }
 
+        .target-list-table th:first-child,
+        .target-list-table td:first-child,
         .recorded-targets-table th:first-child,
         .recorded-targets-table td:first-child {
-            width: 40px;
+            width: 108px;
             text-align: center;
+            white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: normal;
+        }
+
+        .target-list-table th:nth-child(3),
+        .target-list-table td:nth-child(3),
+        .recorded-targets-table th:nth-child(3),
+        .recorded-targets-table td:nth-child(3) {
+            width: 74px;
+            text-align: center;
+            white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: normal;
         }
 
         .recorded-targets-table td .load-mission-btn {
@@ -483,10 +1038,149 @@
             cursor: not-allowed;
         }
 
-        .recorded-target-checkbox {
-            width: 18px;
-            height: 18px;
+        .target-list-manager {
+            display: block;
+            margin-bottom: 24px;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .target-list-detail,
+        .recorded-targets-section {
+            border: 1px solid #00ff66;
+            background-color: #000;
+            padding: 10px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .target-list-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid transparent;
             cursor: pointer;
+            color: #00ff66;
+            overflow-wrap: anywhere;
+        }
+
+        .target-list-row.active {
+            border-color: #00ff66;
+            background-color: #003311;
+        }
+
+        .target-list-form {
+            display: none;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin: 12px 0 16px;
+            padding: 10px;
+            border: 1px solid #00ff66;
+            background-color: #111;
+            min-width: 0;
+        }
+
+        .target-list-form.visible {
+            display: grid;
+        }
+
+        .target-list-form .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .target-list-ammo-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 90px;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .target-list-ammo-row .input-group {
+            margin-bottom: 0;
+        }
+
+        .target-list-form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .target-list-toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .target-list-action-btn {
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            border-radius: 4px;
+            padding: 7px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            white-space: normal;
+        }
+
+        .target-list-action-btn:hover {
+            background-color: #003311;
+        }
+
+        .target-list-delete-active {
+            display: none;
+        }
+
+        .target-list-delete-active.visible {
+            display: inline-block;
+        }
+
+        .sidebar-target-list-control {
+            margin-bottom: 15px;
+        }
+
+        .sidebar-target-list-control .tab-button {
+            margin-bottom: 0;
+        }
+
+        .sidebar-target-list-menu {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            border: 1px solid #00ff66;
+            border-width: 0 1px;
+            background-color: #000;
+            padding: 0 8px;
+            transform: translateY(-6px);
+            transform-origin: top;
+            transition: max-height 0.22s ease, opacity 0.18s ease, transform 0.18s ease, padding 0.18s ease, border-width 0.18s ease;
+        }
+
+        .sidebar-target-list-control.active .sidebar-target-list-menu {
+            max-height: 420px;
+            opacity: 1;
+            border-width: 0 1px 1px;
+            padding: 8px;
+            transform: translateY(0);
+        }
+
+        .sidebar-target-list-menu .target-list-toolbar {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-target-list-menu .target-list-action-btn,
+        .sidebar-target-list-menu .delete-targets-btn {
+            width: 100%;
+            padding: 7px 8px;
+            font-size: 11px;
+        }
+
+        .sidebar-target-list-menu .target-list-row {
+            margin-top: 6px;
+            font-size: 12px;
         }
 
         .no-targets {
@@ -892,7 +1586,7 @@
         }
 
         .accept-menu {
-            display: none;
+            display: block;
             position: absolute;
             top: calc(100% + 4px);
             left: 0;
@@ -901,10 +1595,19 @@
             border: 1px solid #00ff66;
             z-index: 20;
             box-shadow: 0 0 12px rgba(0,255,102,0.18);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-8px) scaleY(0.96);
+            transform-origin: top;
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
         }
 
         .accept-menu.open {
-            display: block;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scaleY(1);
         }
 
         .accept-menu button {
@@ -1312,6 +2015,7 @@
                 height: auto;
                 min-height: 80px;
                 padding: 10px 15px;
+                display: flex;
                 flex-wrap: wrap;
                 gap: 10px;
             }
@@ -1337,6 +2041,7 @@
 
             .top-item {
                 min-width: 120px;
+                max-width: none;
                 margin: 5px 0;
             }
 
@@ -1373,6 +2078,11 @@
             .end-mission-btn {
                 padding: 6px 12px;
                 font-size: 12px;
+            }
+
+            .check-firing-button {
+                padding: 6px 10px;
+                font-size: 11px;
             }
 
             .dropdowns {
@@ -1516,6 +2226,10 @@
                 grid-template-columns: repeat(2, minmax(100px, 1fr));
             }
 
+            .settings-layout {
+                grid-template-columns: 1fr;
+            }
+
             .recorded-targets-table th,
             .recorded-targets-table td {
                 padding: 8px;
@@ -1526,6 +2240,15 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 10px;
+            }
+
+            .target-list-manager,
+            .target-list-form {
+                grid-template-columns: 1fr;
+            }
+
+            .target-list-detail {
+                overflow-x: auto;
             }
 
             .recorded-targets-panel-header .panel-actions {
@@ -1674,6 +2397,11 @@
                 grid-template-columns: 1fr;
             }
 
+            .settings-layout,
+            .settings-column {
+                gap: 10px;
+            }
+
             .recorded-targets-table th,
             .recorded-targets-table td {
                 padding: 6px;
@@ -1713,8 +2441,15 @@
             POLAR FIRE MISSION
         </button>
 
-        <button class="tab-button" id="recordedTargetsTab" onclick="showRecordedTargets()">
-            RECORDED TARGETS
+        <div class="sidebar-target-list-control" id="targetListSidebarControl">
+            <button class="tab-button" id="recordedTargetsTab" onclick="showRecordedTargets()">
+                TARGET LISTS
+            </button>
+            <div class="sidebar-target-list-menu" id="targetListSidebarMenu"></div>
+        </div>
+
+        <button class="tab-button" id="fireplanTab" onclick="showFireplan()">
+            FIREPLAN
         </button>
 
         <button class="tab-button settings-tab-button" id="settingsTab" onclick="showSettings()">
@@ -1727,7 +2462,7 @@
 
     <div class="top-bar">
 
-        <button class="nav-button" onclick="window.location.href='../index.html'">UNIT LOCATION</button>
+        <button class="nav-button" onclick="window.location.href='../index.html'">UNIT SETUP</button>
         <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
 
         <div class="top-item">
@@ -1735,12 +2470,13 @@
             <span class="top-value" id="displayLocation">---</span>
         </div>
 
-        <div class="top-item compact">
+        <div class="top-item compact header-zulu-time">
             <span class="top-label">Z TIME</span>
             <span class="top-value" id="displayZuluTime">----</span>
         </div>
 
         <div class="mission-controls">
+            <button id="checkFiringButton" class="check-firing-button" type="button" onclick="toggleCheckFiring()">CHECK FIRING</button>
             <div class="end-mission-control">
                 <button id="endMissionToggleBtn" class="dropdown-button" type="button">End Mission</button>
                 <div class="end-mission-menu" id="endMissionMenu">
@@ -1890,41 +2626,170 @@
         <!-- RECORDED TARGETS PANEL -->
 
         <div class="recorded-targets-panel" id="recordedTargetsPanel" style="display: none;">
-            <h3>Recorded Targets</h3>
-            <div id="recordedTargetsList" class="recorded-targets-list">
-                <div class="no-targets">No recorded targets yet</div>
+            <h3>Target Lists</h3>
+            <div id="targetListsManager" class="target-list-manager"></div>
+            <div class="recorded-targets-section">
+                <div id="recordedTargetsList" class="recorded-targets-list">
+                    <div class="no-targets">No recorded targets yet</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fireplan-panel" id="fireplanPanel" style="display: none;">
+            <h3 class="fireplan-title">Artillery Fire Plan</h3>
+            <div class="fireplan-meta">
+                <button type="button" class="fireplan-action-btn" onclick="loadActiveTargetListIntoFireplan()">Select Target List</button>
+                <button type="button" class="fireplan-action-btn" onclick="clearFireplan()">Clear All</button>
+                <label for="fireplanHHourInput">H Hour</label>
+                <input id="fireplanHHourInput" class="fireplan-h-hour-input" type="text" inputmode="numeric" maxlength="6" placeholder="HHMM" oninput="handleFireplanHHourInput()" onblur="handleFireplanHHourInput()">
+            </div>
+            <div class="fireplan-table-wrap">
+                <table class="fireplan-table fireplan-target-table">
+                    <thead>
+                        <tr>
+                            <th>Target</th>
+                            <th>Description</th>
+                            <th>Location</th>
+                            <th>Altitude</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                        <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="fireplan-table-wrap">
+                <table class="fireplan-table fireplan-schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Formation</th>
+                            <th>Firing Unit</th>
+                            <th>Schedule</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td></td><td></td><td class="schedule-cell"></td><td></td></tr>
+                        <tr><td></td><td></td><td class="schedule-cell"></td><td></td></tr>
+                        <tr><td></td><td></td><td class="schedule-cell"></td><td></td></tr>
+                        <tr><td></td><td></td><td class="schedule-cell"></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="fireplan-schedule-overlay" id="fireplanScheduleOverlay">
+            <div class="fireplan-schedule-popup">
+                <h4>Schedule Target</h4>
+                <div class="fireplan-schedule-grid">
+                    <div class="input-group">
+                        <label for="scheduleTargetNumberInput">Target Number</label>
+                        <input id="scheduleTargetNumberInput" type="text" maxlength="8" oninput="formatFireplanScheduleTargetInput()">
+                    </div>
+                    <div class="input-group">
+                        <label for="scheduleFromInput">From</label>
+                        <input id="scheduleFromInput" type="number" step="1" placeholder="H+0">
+                    </div>
+                    <div class="input-group">
+                        <label for="scheduleToInput">To</label>
+                        <input id="scheduleToInput" type="number" step="1" placeholder="H+5">
+                    </div>
+                </div>
+                <div class="fireplan-schedule-actions">
+                    <button type="button" class="delete-schedule-btn" id="deleteScheduleAssignmentBtn" onclick="deleteFireplanScheduleAssignment()">Delete</button>
+                    <button type="button" onclick="closeFireplanSchedulePopup()">Cancel</button>
+                    <button type="button" onclick="saveFireplanScheduleAssignment()">Save</button>
+                </div>
             </div>
         </div>
 
         <div class="settings-panel" id="settingsPanel" style="display: none;">
             <h3>Settings</h3>
-            <div class="settings-row">
-                <div class="input-group">
-                    <label for="zuluTimeInput">Set Z Time</label>
-                    <input id="zuluTimeInput" type="text" inputmode="numeric" maxlength="5" placeholder="HHMM">
+            <div class="settings-layout">
+                <div class="settings-column">
+                    <div class="settings-section">
+                        <h4>Z Time</h4>
+                        <div class="settings-row">
+                            <div class="input-group">
+                                <label for="zuluTimeInput">Set Z Time</label>
+                                <input id="zuluTimeInput" type="text" inputmode="numeric" maxlength="5" placeholder="HHMM">
+                            </div>
+                            <button type="button" class="calculate-btn" onclick="markZuluTime()">MARK</button>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h4>Audio</h4>
+                        <div class="input-group">
+                            <label for="notificationVolumeInput">Webpage Volume</label>
+                            <input id="notificationVolumeInput" type="range" min="0" max="100" step="1" value="100" oninput="updateNotificationVolumeFromInput()">
+                            <span class="range-value" id="notificationVolumeDisplay">100%</span>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h4>Target Blocks</h4>
+                        <div class="target-block-grid">
+                            <div class="input-group">
+                                <label for="targetBlockLetter1">Letter 1</label>
+                                <select id="targetBlockLetter1"></select>
+                            </div>
+                            <div class="input-group">
+                                <label for="targetBlockLetter2">Letter 2</label>
+                                <select id="targetBlockLetter2"></select>
+                            </div>
+                            <div class="input-group">
+                                <label for="targetBlockStart">From</label>
+                                <input id="targetBlockStart" type="text" inputmode="numeric" maxlength="4" placeholder="0001">
+                            </div>
+                            <div class="input-group">
+                                <label for="targetBlockEnd">To</label>
+                                <input id="targetBlockEnd" type="text" inputmode="numeric" maxlength="4" placeholder="0050">
+                            </div>
+                            <button type="button" class="calculate-btn" onclick="saveTargetBlockSettings()">SAVE</button>
+                        </div>
+                    </div>
                 </div>
-                <button type="button" class="calculate-btn" onclick="markZuluTime()">MARK</button>
-            </div>
-            <div class="settings-section">
-                <h4>Target Blocks</h4>
-                <div class="target-block-grid">
-                    <div class="input-group">
-                        <label for="targetBlockLetter1">Letter 1</label>
-                        <select id="targetBlockLetter1"></select>
+                <div class="settings-section">
+                    <h4>Meteorological Data</h4>
+                    <div class="met-data-grid" id="meteorologicalDataGrid">
+                        <div class="input-group">
+                            <label for="metConditionSelect">Condition</label>
+                            <select id="metConditionSelect">
+                                <option value="clear">Clear</option>
+                                <option value="overcast">Overcast</option>
+                                <option value="rain">Rain</option>
+                                <option value="storm">Storm</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="metWindSpeedInput">Wind Speed</label>
+                            <input id="metWindSpeedInput" type="range" min="0" max="15" step="0.1" value="0" oninput="updateMetWindSpeedDisplay()">
+                            <span class="range-value" id="metWindSpeedDisplay">0.0 m/s</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="metWindDirectionSelect">Wind Direction</label>
+                            <select id="metWindDirectionSelect">
+                                <option value="north">North</option>
+                                <option value="north-east">North East</option>
+                                <option value="east">East</option>
+                                <option value="south-east">South East</option>
+                                <option value="south">South</option>
+                                <option value="south-west">South West</option>
+                                <option value="west">West</option>
+                                <option value="north-west">North West</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="targetBlockLetter2">Letter 2</label>
-                        <select id="targetBlockLetter2"></select>
-                    </div>
-                    <div class="input-group">
-                        <label for="targetBlockStart">From</label>
-                        <input id="targetBlockStart" type="text" inputmode="numeric" maxlength="4" placeholder="0001">
-                    </div>
-                    <div class="input-group">
-                        <label for="targetBlockEnd">To</label>
-                        <input id="targetBlockEnd" type="text" inputmode="numeric" maxlength="4" placeholder="0050">
-                    </div>
-                    <button type="button" class="calculate-btn" onclick="saveTargetBlockSettings()">SAVE</button>
                 </div>
             </div>
         </div>
@@ -1956,12 +2821,24 @@
         // Mission management
         let currentMissionName = null;
         let recordedTargets = JSON.parse(localStorage.getItem("recordedTargets") || "[]");
+        let targetLists = JSON.parse(localStorage.getItem("targetLists") || "[]");
+        let activeTargetListId = localStorage.getItem("activeTargetListId") || "";
+        let editingTargetListTargetId = "";
+        let selectedTargetListTargetIds = [];
+        let selectedRecordedTargetNames = [];
+        let activeFireplanTargetListId = localStorage.getItem("activeFireplanTargetListId") || "";
+        let fireplanScheduleAssignments = [];
+        let editingFireplanScheduleId = "";
+        let activeFireplanScheduleRow = 0;
+        let syncingFireplanScheduleScroll = false;
+        let fireplanRenderedScheduleRange = null;
         const m777BallisticDataCache = {};
         const m777BallisticDataPromises = {};
         const mortarBallisticDataCache = {};
         const mortarBallisticDataPromises = {};
         let zuluClockInterval = null;
         let activeFiringSolutions = [];
+        let missionFormState = {};
         let lastProcessedLocationUpdateId = localStorage.getItem("lastProcessedLocationUpdateId") || "";
         let lastProcessedMissionDenyId = localStorage.getItem("lastProcessedMissionDenyId") || "";
         let lastProcessedPingId = localStorage.getItem("lastProcessedPingId") || "";
@@ -2001,8 +2878,21 @@
             return generateMissionName() || `${targetBlock.prefix}${padTargetNumber(targetBlock.start)}`;
         }
 
-        function generateMissionName() {
-            const usedNumbers = new Set(recordedTargets.map(target => target.name));
+        function getUsedTargetNumbers() {
+            const usedNumbers = new Set(recordedTargets.map(target => target.name).filter(Boolean));
+            targetLists.forEach(list => {
+                (list.targets || []).forEach(target => {
+                    if (target.targetNumber) usedNumbers.add(target.targetNumber);
+                });
+            });
+            return usedNumbers;
+        }
+
+        function generateMissionName(excludeTargetNumber = "") {
+            const usedNumbers = getUsedTargetNumbers();
+            if (excludeTargetNumber) {
+                usedNumbers.delete(excludeTargetNumber);
+            }
             const targetBlock = getTargetBlockSettings();
 
             for (let nextNumber = targetBlock.start; nextNumber <= targetBlock.end; nextNumber++) {
@@ -2016,7 +2906,19 @@
         }
 
         function isRecordedTargetNumber(name) {
-            return recordedTargets.some(target => target.name === name);
+            return isTargetNumberInUse(name);
+        }
+
+        function isTargetNumberInUse(name, excludeTargetNumber = "") {
+            if (!name || name === excludeTargetNumber) return false;
+            return getUsedTargetNumbers().has(name);
+        }
+
+        function isTargetNumberInTargetLists(name, excludeTargetId = "") {
+            if (!name) return false;
+            return targetLists.some(list => (list.targets || []).some(target => (
+                target.targetNumber === name && target.id !== excludeTargetId
+            )));
         }
 
         
@@ -2028,6 +2930,56 @@
         function setValue(id, value) {
             const element = document.getElementById(id);
             if (element) element.value = value;
+        }
+
+        function formatTargetNumberValue(value) {
+            return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        }
+
+        function formatTargetNumberInput(id) {
+            const element = document.getElementById(id);
+            if (element) element.value = formatTargetNumberValue(element.value);
+        }
+
+        function formatListName(value) {
+            const trimmedValue = String(value || "").trim().replace(/\s+/g, " ");
+            if (!trimmedValue) return "";
+            return trimmedValue.charAt(0).toUpperCase() + trimmedValue.slice(1);
+        }
+
+        function normalizeGridInputValue(value) {
+            const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+            if (!digits || digits.length % 2 !== 0) return digits;
+
+            const half = digits.length / 2;
+            const easting = digits.slice(0, half).padEnd(5, "0").slice(0, 5);
+            const northing = digits.slice(half).padEnd(5, "0").slice(0, 5);
+            return `${easting}${northing}`;
+        }
+
+        function normalizeGridInput(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = normalizeGridInputValue(element.value);
+            }
+        }
+
+        function clampNumberInput(id, min, max) {
+            const element = document.getElementById(id);
+            if (!element || element.value === "") return;
+            const value = parseFloat(element.value);
+            if (Number.isNaN(value)) {
+                element.value = "";
+                return;
+            }
+            element.value = Math.min(max, Math.max(min, value)).toString();
+        }
+
+        function clampNumberInputValue(value, min, max) {
+            if (value === "") return "";
+            const parsedValue = parseFloat(value);
+            if (Number.isNaN(parsedValue)) return "";
+            return Math.min(max, Math.max(min, parsedValue)).toString();
         }
 
         function normalizeMilitaryTime(value) {
@@ -2118,6 +3070,7 @@
             if (zuluTimeInput && document.activeElement !== zuluTimeInput) {
                 zuluTimeInput.value = zuluTime ? zuluTime.slice(0, 4) : "";
             }
+            updateFireplanCurrentZuluMarker();
         }
 
         function markZuluTime() {
@@ -2131,6 +3084,97 @@
             localStorage.setItem("zuluTime", normalized);
             localStorage.setItem("zuluTimeMarkedAt", Date.now().toString());
             updateZuluTimeDisplay();
+        }
+
+        function getNotificationVolume() {
+            const stored = parseInt(localStorage.getItem("notificationVolume") || "100", 10);
+            const safeValue = Number.isNaN(stored) ? 100 : Math.max(0, Math.min(100, stored));
+            return safeValue / 100;
+        }
+
+        function applyNotificationVolume() {
+            if (notificationAudio) {
+                notificationAudio.volume = getNotificationVolume();
+            }
+        }
+
+        function updateNotificationVolumeDisplay() {
+            const input = document.getElementById("notificationVolumeInput");
+            const display = document.getElementById("notificationVolumeDisplay");
+            const volumePercent = Math.round(getNotificationVolume() * 100);
+            if (input && document.activeElement !== input) {
+                input.value = String(volumePercent);
+            }
+            if (display) {
+                display.innerText = `${volumePercent}%`;
+            }
+            applyNotificationVolume();
+        }
+
+        function updateNotificationVolumeFromInput() {
+            const input = document.getElementById("notificationVolumeInput");
+            const rawValue = input ? parseInt(input.value, 10) : 100;
+            const volumePercent = Number.isNaN(rawValue) ? 100 : Math.max(0, Math.min(100, rawValue));
+            localStorage.setItem("notificationVolume", String(volumePercent));
+            updateNotificationVolumeDisplay();
+        }
+
+        function updateMetWindSpeedDisplay() {
+            const input = document.getElementById("metWindSpeedInput");
+            const display = document.getElementById("metWindSpeedDisplay");
+            if (!input || !display) return;
+
+            const speed = parseFloat(input.value);
+            display.innerText = `${Number.isNaN(speed) ? "0.0" : speed.toFixed(1)} m/s`;
+        }
+
+        function getMeteorologicalData() {
+            return {
+                condition: getValue("metConditionSelect", "clear"),
+                windSpeed: parseFloat(getValue("metWindSpeedInput", "0")) || 0,
+                windDirection: getValue("metWindDirectionSelect", "north"),
+            };
+        }
+
+        function getWeatherWindMultiplier(condition) {
+            if (condition === "storm") return 1.3;
+            if (condition === "rain") return 1.15;
+            if (condition === "overcast") return 1.05;
+            return 1;
+        }
+
+        function getWindFromDirectionVector(direction) {
+            const radiansByDirection = {
+                "north": 0,
+                "north-east": Math.PI / 4,
+                "east": Math.PI / 2,
+                "south-east": 3 * Math.PI / 4,
+                "south": Math.PI,
+                "south-west": 5 * Math.PI / 4,
+                "west": 3 * Math.PI / 2,
+                "north-west": 7 * Math.PI / 4,
+            };
+            const fromRad = radiansByDirection[direction] ?? 0;
+
+            return {
+                x: -Math.sin(fromRad),
+                y: -Math.cos(fromRad),
+            };
+        }
+
+        function applyMeteorologicalCorrection(aimPoint, timeOfFlightSeconds, metData) {
+            const tof = parseFloat(timeOfFlightSeconds);
+            if (!aimPoint || Number.isNaN(tof) || tof <= 0 || !metData || !metData.windSpeed) {
+                return { x: aimPoint.x, y: aimPoint.y };
+            }
+
+            const windVector = getWindFromDirectionVector(metData.windDirection);
+            const driftMeters = metData.windSpeed * tof * 0.12 * getWeatherWindMultiplier(metData.condition);
+
+            return {
+                x: aimPoint.x - windVector.x * driftMeters,
+                y: aimPoint.y - windVector.y * driftMeters,
+            };
         }
 
         function getLetterOptionsMarkup(selectedLetter = "A") {
@@ -2193,6 +3237,7 @@
             processMissionDenyReport();
             processDfcsPing();
             processDfcsPingAck();
+            updateCheckFiringButton();
             zuluClockInterval = setInterval(() => {
                 updateZuluTimeDisplay();
                 updateLiveFireCountdowns();
@@ -2202,6 +3247,7 @@
                 processMissionDenyReport();
                 processDfcsPing();
                 processDfcsPingAck();
+                updateCheckFiringButton();
             }, 1000);
         }
 
@@ -2403,6 +3449,13 @@
             if (lastReceivedDfcsPing && lastReceivedDfcsPing.pingId) {
                 acknowledgedDfcsPingId = lastReceivedDfcsPing.pingId;
                 localStorage.setItem("acknowledgedDfcsPingId", acknowledgedDfcsPingId);
+                localStorage.setItem("fdcPingAck", JSON.stringify({
+                    pingId: lastReceivedDfcsPing.pingId,
+                    unit: lastReceivedDfcsPing.unit,
+                    fdcCallsign: lastReceivedDfcsPing.fdcCallsign,
+                    unitAssignedName: lastReceivedDfcsPing.unitAssignedName,
+                    ackAt: new Date().toISOString(),
+                }));
             }
             const dfcsPingAck = readJsonStorage("dfcsPingAck");
             if (dfcsPingAck && dfcsPingAck.pingId) {
@@ -2469,13 +3522,6 @@
 
             lastProcessedPingId = ping.pingId;
             localStorage.setItem("lastProcessedPingId", ping.pingId);
-            localStorage.setItem("fdcPingAck", JSON.stringify({
-                pingId: ping.pingId,
-                unit: ping.unit,
-                fdcCallsign: ping.fdcCallsign,
-                unitAssignedName: ping.unitAssignedName,
-                ackAt: new Date().toISOString(),
-            }));
         }
 
         function processDfcsPingAck() {
@@ -2498,7 +3544,7 @@
                 localStorage.setItem("lastProcessedDfcsPingAckId", ack.pingId);
             }
 
-            updateConnectivityStatus(`Ping acknowledged by ${ack.unitAssignedName || `${ack.unit}${ack.fdcCallsign}`} at ${formatConnectivityTime(ack.acknowledgedAt)}`, "ping");
+            updateConnectivityStatus(`Ping acknowledged by ${ack.unitAssignedName || `${ack.unit}${ack.fdcCallsign}`} at ${formatConnectivityTime(ack.acknowledgedAt || ack.ackAt)}`, "ping");
             setNotificationSound("fdc-ping-ack", false);
         }
 
@@ -2508,6 +3554,43 @@
             } catch (error) {
                 return null;
             }
+        }
+
+        function getCheckFiringState() {
+            const state = readJsonStorage("checkFiringState");
+            if (!state || !state.active || state.fdcCallsign !== getActiveFdcCallsign()) {
+                return null;
+            }
+            return state;
+        }
+
+        function isCheckFiringActive() {
+            return Boolean(getCheckFiringState());
+        }
+
+        function updateCheckFiringButton() {
+            const button = document.getElementById("checkFiringButton");
+            if (!button) return;
+            const active = isCheckFiringActive();
+            button.classList.toggle("active", active);
+            button.innerText = active ? "CHECK FIRING ACTIVE" : "CHECK FIRING";
+        }
+
+        function toggleCheckFiring() {
+            const active = isCheckFiringActive();
+            if (active) {
+                const state = readJsonStorage("checkFiringState");
+                if (!state || state.fdcCallsign === getActiveFdcCallsign()) {
+                    localStorage.removeItem("checkFiringState");
+                }
+            } else {
+                localStorage.setItem("checkFiringState", JSON.stringify({
+                    active: true,
+                    fdcCallsign: getActiveFdcCallsign(),
+                    updatedAt: new Date().toISOString(),
+                }));
+            }
+            updateCheckFiringButton();
         }
 
         function getNotificationSoundSrc() {
@@ -2528,6 +3611,7 @@
                 notificationAudio = new Audio(source);
                 notificationAudio.loop = true;
                 notificationAudio.preload = "auto";
+                notificationAudio.volume = getNotificationVolume();
                 notificationAudio.addEventListener("error", () => {
                     showSoundStatus(`Sound file failed to load: ${source}`);
                 });
@@ -2583,13 +3667,13 @@
                 const audio = getNotificationAudio();
                 audio.pause();
                 audio.currentTime = 0;
-                showSoundStatus("Sound off.");
+                showSoundStatus("");
                 return;
             }
 
             playNotificationAudio()
                 .then(() => {
-                    showSoundStatus(`Sound enabled: ${getNotificationSoundSrc()}`);
+                    showSoundStatus("");
                     if (activeNotificationSounds.size === 0) {
                         const audio = getNotificationAudio();
                         audio.pause();
@@ -2737,6 +3821,10 @@
 
         function getActiveFdcCallsign() {
             return localStorage.getItem("fdcCallsign") || "1";
+        }
+
+        function getActiveFdcDisplayName() {
+            return `FDC ${getActiveFdcCallsign()}`;
         }
 
         function isDfcsPresenceActive(unitLabel) {
@@ -3499,14 +4587,14 @@ ${getAngleModeMarkup()}
                     return "";
                 }
 
-                const trimmedName = newName.trim();
+                const trimmedName = formatTargetNumberValue(newName);
                 if (!trimmedName) {
                     alert("Enter a target number to record this target.");
                     continue;
                 }
 
                 if (isRecordedTargetNumber(trimmedName)) {
-                    alert(`${trimmedName} is already saved in the recorded targets tab.`);
+                    alert(`${trimmedName} is already saved in the target lists tab.`);
                     suggestedName = generateMissionName();
                     continue;
                 }
@@ -3519,9 +4607,1102 @@ ${getAngleModeMarkup()}
             localStorage.setItem("recordedTargets", JSON.stringify(recordedTargets));
         }
 
+        function escapeHtml(value) {
+            const safeValue = value === null || value === undefined ? "" : value;
+            return String(safeValue).replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "\"": "&quot;",
+                "'": "&#39;",
+            }[char]));
+        }
+
+        function saveTargetLists() {
+            localStorage.setItem("targetLists", JSON.stringify(targetLists));
+            localStorage.setItem("activeTargetListId", activeTargetListId || "");
+        }
+
+        function getTargetListTargetByNumber(targetNumber) {
+            const normalizedNumber = String(targetNumber || "").trim();
+            if (!normalizedNumber) return null;
+            for (const list of targetLists) {
+                const target = (list.targets || []).find(item => item.targetNumber === normalizedNumber);
+                if (target) {
+                    return { ...target, listName: list.name };
+                }
+            }
+            return null;
+        }
+
+        function getRecordedTargetByNumber(targetNumber) {
+            const normalizedNumber = String(targetNumber || "").trim();
+            if (!normalizedNumber) return null;
+            return recordedTargets.find(target => target.name === normalizedNumber) || null;
+        }
+
+        function getSavedTargetByNumber(targetNumber) {
+            const listTarget = getTargetListTargetByNumber(targetNumber);
+            if (listTarget) return { source: "target-list", target: listTarget };
+            const recordedTarget = getRecordedTargetByNumber(targetNumber);
+            if (recordedTarget) return { source: "recorded", target: recordedTarget };
+            return null;
+        }
+
+        function setAmmunitionSelection(ammunition) {
+            if (!ammunition) return;
+            const ffe1Select = document.getElementById("ffe1Select");
+            if (ffe1Select) {
+                ffe1Select.value = ammunition;
+            }
+        }
+
+        function normalizeMethodOfControl(value) {
+            if (value === "At My Command") return "At my command";
+            if (value === "At my command" || value === "Time on target") return value;
+            return "When Ready";
+        }
+
+        function applySavedTargetToMissionByNumber(targetNumber) {
+            const match = getSavedTargetByNumber(targetNumber);
+            if (!match) return false;
+            const target = match.target;
+            currentMissionName = targetNumber;
+
+            if (match.source === "recorded") {
+                if (target.inputs) {
+                    populateMissionInputs(target.inputs);
+                }
+                if (target.location) {
+                    setValue("targetLocationInput", target.location);
+                    setValue("referenceLocationInput", target.location);
+                }
+                if (target.altitude) {
+                    setValue("targetAltitudeInput", target.altitude);
+                    setValue("referenceAltitudeInput", target.altitude);
+                }
+                if (target.targetDescription) {
+                    setValue("targetDescriptionInput", target.targetDescription);
+                }
+                return true;
+            }
+
+            setValue("targetLocationInput", target.location || "");
+            setValue("referenceLocationInput", target.location || "");
+            setValue("targetAltitudeInput", target.altitude || "");
+            setValue("referenceAltitudeInput", target.altitude || "");
+            setValue("targetDescriptionInput", target.description || "");
+            setAmmunitionSelection(target.ammunition);
+            setEngagementTimingMode(normalizeMethodOfControl(target.methodOfControl));
+            return true;
+        }
+
+        function applyTargetNumberAutofill() {
+            const input = document.getElementById("missionNameInput");
+            if (!input) return;
+            const targetNumber = formatTargetNumberValue(input.value);
+            if (input.value !== targetNumber) {
+                input.value = targetNumber;
+            }
+            if (!targetNumber) {
+                delete input.dataset.lastAutofillTarget;
+                return;
+            }
+            if (input.dataset.lastAutofillTarget === targetNumber) return;
+            if (applySavedTargetToMissionByNumber(targetNumber)) {
+                input.dataset.lastAutofillTarget = targetNumber;
+            } else {
+                delete input.dataset.lastAutofillTarget;
+            }
+        }
+
+        function formatMissionNameInputOnly() {
+            const input = document.getElementById("missionNameInput");
+            if (!input) return;
+            const targetNumber = formatTargetNumberValue(input.value);
+            if (input.value !== targetNumber) {
+                input.value = targetNumber;
+            }
+            delete input.dataset.lastAutofillTarget;
+        }
+
+        function setupTargetNumberAutofill() {
+            const input = document.getElementById("missionNameInput");
+            if (!input) return;
+            input.removeEventListener("input", applyTargetNumberAutofill);
+            input.removeEventListener("change", applyTargetNumberAutofill);
+            input.removeEventListener("blur", applyTargetNumberAutofill);
+            input.removeEventListener("input", formatMissionNameInputOnly);
+            input.removeEventListener("change", formatMissionNameInputOnly);
+            input.removeEventListener("blur", formatMissionNameInputOnly);
+            input.addEventListener("input", formatMissionNameInputOnly);
+            input.addEventListener("change", formatMissionNameInputOnly);
+            input.addEventListener("blur", formatMissionNameInputOnly);
+        }
+
+        function applySavedTargetToTargetListForm(targetNumber) {
+            const match = getSavedTargetByNumber(targetNumber);
+            if (!match) return false;
+            const target = match.target;
+
+            if (match.source === "recorded") {
+                if (target.location) {
+                    setValue("targetListLocationInput", target.location);
+                }
+                if (target.altitude) {
+                    setValue("targetListAltitudeInput", target.altitude);
+                }
+                if (target.targetDescription) {
+                    setValue("targetListDescriptionInput", target.targetDescription);
+                }
+                const inputs = target.inputs || {};
+                if (inputs.ffe1Select) {
+                    setValue("targetListAmmunitionInput", inputs.ffe1Select);
+                }
+                if (inputs.engagementTimingInput) {
+                    setValue("targetListMethodControlInput", normalizeMethodOfControl(inputs.engagementTimingInput));
+                }
+                return true;
+            }
+
+            setValue("targetListLocationInput", target.location || "");
+            setValue("targetListAltitudeInput", target.altitude || "");
+            setValue("targetListDescriptionInput", target.description || "");
+            setValue("targetListAmmunitionInput", target.ammunition || "");
+            setValue("targetListMethodControlInput", normalizeMethodOfControl(target.methodOfControl));
+            setValue("targetListRemarksInput", target.remarks || "");
+            return true;
+        }
+
+        function applyTargetListTargetNumberAutofill() {
+            const input = document.getElementById("targetListNumberInput");
+            if (!input || input.readOnly) return;
+            const targetNumber = formatTargetNumberValue(input.value);
+            if (input.value !== targetNumber) {
+                input.value = targetNumber;
+            }
+            if (!targetNumber) {
+                delete input.dataset.lastAutofillTarget;
+                return;
+            }
+            if (input.dataset.lastAutofillTarget === targetNumber) return;
+            if (applySavedTargetToTargetListForm(targetNumber)) {
+                input.dataset.lastAutofillTarget = targetNumber;
+            } else {
+                delete input.dataset.lastAutofillTarget;
+            }
+        }
+
+        function initializeFireplanInputs() {
+            if (!activeFireplanTargetListId && activeTargetListId) {
+                setActiveFireplanTargetList(activeTargetListId);
+            } else {
+                loadFireplanScheduleAssignments();
+            }
+            const rows = document.querySelectorAll(".fireplan-target-table tbody tr");
+            rows.forEach((row, rowIndex) => {
+                if (row.dataset.fireplanReady === "true") return;
+                const fields = ["target", "description", "location", "altitude", "remarks"];
+                row.querySelectorAll("td").forEach((cell, cellIndex) => {
+                    const field = fields[cellIndex];
+                    if (!field) return;
+                    const maxLength = field === "target" ? 8 : field === "location" ? 10 : field === "altitude" ? 3 : 80;
+                    const inputMode = field === "location" || field === "altitude" ? "numeric" : "text";
+                    const handler = field === "target" ? " oninput=\"handleFireplanTargetInput(this)\" onblur=\"handleFireplanTargetInput(this)\"" : "";
+                    cell.innerHTML = `<input class="fireplan-cell-input" data-row="${rowIndex}" data-field="${field}" type="text" inputmode="${inputMode}" maxlength="${maxLength}"${handler}>`;
+                });
+                row.dataset.fireplanReady = "true";
+            });
+            loadFireplanHHour();
+            updateFireplanScheduleUnits();
+            initializeFireplanScheduleCells();
+            renderFireplanScheduleScale();
+        }
+
+        function getFireplanRowInput(rowIndex, field) {
+            return document.querySelector(`.fireplan-target-table input[data-row="${rowIndex}"][data-field="${field}"]`);
+        }
+
+        function setFireplanRowValue(rowIndex, field, value) {
+            const input = getFireplanRowInput(rowIndex, field);
+            if (input) {
+                input.value = value || "";
+            }
+        }
+
+        function clearFireplanRow(rowIndex) {
+            ["target", "description", "location", "altitude", "remarks"].forEach(field => {
+                setFireplanRowValue(rowIndex, field, "");
+            });
+            const targetInput = getFireplanRowInput(rowIndex, "target");
+            if (targetInput) {
+                delete targetInput.dataset.lastAutofillTarget;
+            }
+        }
+
+        function getFireplanTargetValues(match) {
+            if (!match || !match.target) {
+                return { description: "", location: "", altitude: "", remarks: "" };
+            }
+            const target = match.target;
+            if (match.source === "recorded") {
+                const inputs = target.inputs || {};
+                return {
+                    description: target.targetDescription || inputs.targetDescriptionInput || "",
+                    location: target.location || inputs.targetLocationInput || inputs.referenceLocationInput || "",
+                    altitude: target.altitude || inputs.targetAltitudeInput || inputs.referenceAltitudeInput || "",
+                    remarks: target.methodOfEngagement || inputs.methodOfEngagementInput || inputs.methodOfFireControlInput || "",
+                };
+            }
+            return {
+                description: target.description || "",
+                location: target.location || "",
+                altitude: target.altitude || "",
+                remarks: target.remarks || "",
+            };
+        }
+
+        function applySavedTargetToFireplanRow(rowIndex, targetNumber) {
+            const match = getSavedTargetByNumber(targetNumber);
+            if (!match) return false;
+            const values = getFireplanTargetValues(match);
+            setFireplanRowValue(rowIndex, "description", values.description);
+            setFireplanRowValue(rowIndex, "location", values.location);
+            setFireplanRowValue(rowIndex, "altitude", values.altitude);
+            setFireplanRowValue(rowIndex, "remarks", values.remarks);
+            return true;
+        }
+
+        function populateFireplanRowFromTarget(rowIndex, target) {
+            if (!target) {
+                clearFireplanRow(rowIndex);
+                return;
+            }
+            setFireplanRowValue(rowIndex, "target", target.targetNumber || "");
+            const values = getFireplanTargetValues({ source: "target-list", target });
+            setFireplanRowValue(rowIndex, "description", values.description);
+            setFireplanRowValue(rowIndex, "location", values.location);
+            setFireplanRowValue(rowIndex, "altitude", values.altitude);
+            setFireplanRowValue(rowIndex, "remarks", values.remarks);
+            const targetInput = getFireplanRowInput(rowIndex, "target");
+            if (targetInput) {
+                targetInput.dataset.lastAutofillTarget = target.targetNumber || "";
+            }
+        }
+
+        function loadActiveTargetListIntoFireplan() {
+            initializeFireplanInputs();
+            const list = getActiveTargetList();
+            if (!list) {
+                alert("Create or select a target list first.");
+                return;
+            }
+            setActiveFireplanTargetList(list.id);
+            const targets = Array.isArray(list.targets) ? list.targets : [];
+            if (!targets.length) {
+                alert(`${list.name} has no targets to add to the fire plan.`);
+                renderFireplanScheduleScale();
+                return;
+            }
+
+            const rows = document.querySelectorAll(".fireplan-target-table tbody tr");
+            rows.forEach((row, rowIndex) => {
+                populateFireplanRowFromTarget(rowIndex, targets[rowIndex]);
+            });
+
+            if (targets.length > rows.length) {
+                alert(`${list.name} has ${targets.length} targets. The fire plan table currently fits the first ${rows.length}.`);
+            }
+            renderFireplanScheduleScale();
+        }
+
+        function clearFireplan() {
+            initializeFireplanInputs();
+            document.querySelectorAll(".fireplan-target-table tbody tr").forEach((row, rowIndex) => {
+                clearFireplanRow(rowIndex);
+            });
+            const hHourInput = document.getElementById("fireplanHHourInput");
+            if (hHourInput) {
+                hHourInput.value = "";
+            }
+            localStorage.removeItem("fireplanHHour");
+            fireplanScheduleAssignments = [];
+            saveFireplanScheduleAssignments();
+            updateFireplanScheduleHHourLabels("");
+            renderFireplanScheduleScale();
+        }
+
+        function handleFireplanTargetInput(input) {
+            if (!input) return;
+            const targetNumber = formatTargetNumberValue(input.value);
+            if (input.value !== targetNumber) {
+                input.value = targetNumber;
+            }
+
+            if (!targetNumber) {
+                delete input.dataset.lastAutofillTarget;
+                ["description", "location", "altitude", "remarks"].forEach(field => {
+                    setFireplanRowValue(input.dataset.row, field, "");
+                });
+                return;
+            }
+
+            if (input.dataset.lastAutofillTarget === targetNumber) return;
+            if (applySavedTargetToFireplanRow(input.dataset.row, targetNumber)) {
+                input.dataset.lastAutofillTarget = targetNumber;
+            } else {
+                delete input.dataset.lastAutofillTarget;
+            }
+        }
+
+        function handleFireplanHHourInput() {
+            const input = document.getElementById("fireplanHHourInput");
+            if (!input) return;
+            input.value = String(input.value || "").replace(/\D/g, "").slice(0, 6);
+            localStorage.setItem("fireplanHHour", input.value);
+            updateFireplanScheduleHHourLabels(input.value);
+            renderFireplanScheduleScale();
+        }
+
+        function loadFireplanHHour() {
+            const input = document.getElementById("fireplanHHourInput");
+            if (!input) return;
+            input.value = localStorage.getItem("fireplanHHour") || input.value || "";
+            updateFireplanScheduleHHourLabels(input.value);
+        }
+
+        function updateFireplanScheduleHHourLabels(value) {
+            const label = value ? `${value}Z` : "H";
+            document.querySelectorAll(".schedule-cell").forEach(cell => {
+                cell.dataset.hHour = label;
+            });
+        }
+
+        function updateFireplanScheduleUnits() {
+            const rows = document.querySelectorAll(".fireplan-schedule-table tbody tr");
+            const fireUnits = getFireUnits();
+            const fdcName = getActiveFdcDisplayName();
+            rows.forEach((row, rowIndex) => {
+                const cells = row.querySelectorAll("td");
+                const unit = fireUnits[rowIndex];
+                if (cells[0]) cells[0].textContent = unit ? fdcName : "";
+                if (cells[1]) cells[1].textContent = unit ? unit.label : "";
+            });
+        }
+
+        function getFireplanScheduleStorageKey(listId = activeFireplanTargetListId) {
+            return listId ? `fireplanScheduleAssignments:${listId}` : "";
+        }
+
+        function setActiveFireplanTargetList(listId) {
+            activeFireplanTargetListId = listId || "";
+            localStorage.setItem("activeFireplanTargetListId", activeFireplanTargetListId);
+            loadFireplanScheduleAssignments();
+        }
+
+        function getActiveFireplanTargetList() {
+            if (!activeFireplanTargetListId && activeTargetListId) {
+                setActiveFireplanTargetList(activeTargetListId);
+            }
+            let list = targetLists.find(item => item.id === activeFireplanTargetListId) || null;
+            if (!list && activeTargetListId) {
+                setActiveFireplanTargetList(activeTargetListId);
+                list = targetLists.find(item => item.id === activeFireplanTargetListId) || null;
+            }
+            return list;
+        }
+
+        function loadFireplanScheduleAssignments() {
+            const key = getFireplanScheduleStorageKey();
+            if (!key) {
+                fireplanScheduleAssignments = [];
+                return;
+            }
+            fireplanScheduleAssignments = JSON.parse(localStorage.getItem(key) || "[]");
+            sanitizeFireplanScheduleAssignments();
+        }
+
+        function sanitizeFireplanScheduleAssignments() {
+            fireplanScheduleAssignments = Array.isArray(fireplanScheduleAssignments)
+                ? fireplanScheduleAssignments
+                    .map(item => ({
+                        id: item.id || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                        rowIndex: parseInt(item.rowIndex, 10),
+                        targetNumber: formatTargetNumberValue(item.targetNumber || ""),
+                        fromMinute: parseInt(item.fromMinute, 10),
+                        toMinute: parseInt(item.toMinute, 10),
+                    }))
+                    .filter(item => (
+                        Number.isInteger(item.rowIndex) &&
+                        item.rowIndex >= 0 &&
+                        item.rowIndex < 4 &&
+                        item.targetNumber &&
+                        Number.isFinite(item.fromMinute) &&
+                        Number.isFinite(item.toMinute)
+                    ))
+                : [];
+        }
+
+        function saveFireplanScheduleAssignments() {
+            sanitizeFireplanScheduleAssignments();
+            const key = getFireplanScheduleStorageKey();
+            if (key) {
+                localStorage.setItem(key, JSON.stringify(fireplanScheduleAssignments));
+            }
+        }
+
+        function initializeFireplanScheduleCells() {
+            document.querySelectorAll(".schedule-cell").forEach((cell, rowIndex) => {
+                cell.dataset.scheduleRow = rowIndex;
+                if (cell.dataset.scheduleReady === "true") return;
+                cell.addEventListener("click", handleFireplanScheduleCellClick);
+                cell.addEventListener("scroll", handleFireplanScheduleScroll);
+                cell.addEventListener("wheel", handleFireplanScheduleWheel, { passive: false });
+                cell.dataset.scheduleReady = "true";
+            });
+        }
+
+        function setFireplanScheduleScrollLeft(scrollLeft) {
+            syncingFireplanScheduleScroll = true;
+            document.querySelectorAll(".schedule-cell").forEach(cell => {
+                if (cell.scrollLeft !== scrollLeft) {
+                    cell.scrollLeft = scrollLeft;
+                }
+            });
+            syncingFireplanScheduleScroll = false;
+        }
+
+        function handleFireplanScheduleWheel(event) {
+            const source = event.currentTarget;
+            const horizontalDelta = Math.abs(event.deltaX) >= Math.abs(event.deltaY)
+                ? event.deltaX
+                : event.shiftKey ? event.deltaY : 0;
+            if (!horizontalDelta) return;
+            event.preventDefault();
+            const maxScroll = source.scrollWidth - source.clientWidth;
+            const nextScrollLeft = Math.max(0, Math.min(maxScroll, source.scrollLeft + horizontalDelta));
+            setFireplanScheduleScrollLeft(nextScrollLeft);
+        }
+
+        function handleFireplanScheduleScroll(event) {
+            if (syncingFireplanScheduleScroll) return;
+            const source = event.currentTarget;
+            setFireplanScheduleScrollLeft(source.scrollLeft);
+        }
+
+        function getFireplanScheduleRange() {
+            sanitizeFireplanScheduleAssignments();
+            const currentZuluMinute = getCurrentFireplanZuluMinuteOffset();
+            if (!fireplanScheduleAssignments.length) {
+                const emptyExtent = Math.ceil(Math.max(Math.abs(currentZuluMinute || 0), 15) / 5) * 5;
+                return { start: -emptyExtent, end: emptyExtent };
+            }
+
+            const firstMinute = Math.min(...fireplanScheduleAssignments.map(item => Math.min(item.fromMinute, item.toMinute)));
+            const lastMinute = Math.max(...fireplanScheduleAssignments.map(item => Math.max(item.fromMinute, item.toMinute)));
+            const maxAbsMinute = Math.max(Math.abs(firstMinute), Math.abs(lastMinute), Math.abs(currentZuluMinute || 0), 15);
+            const extent = Math.ceil(maxAbsMinute / 5) * 5;
+            return { start: -extent, end: extent };
+        }
+
+        function getCurrentFireplanZuluMinuteOffset() {
+            const hHourInput = document.getElementById("fireplanHHourInput");
+            const hHourValue = (hHourInput && hHourInput.value) || localStorage.getItem("fireplanHHour") || "";
+            const hHourSeconds = parseMilitaryTimeToSeconds(hHourValue);
+            if (hHourSeconds === null) return null;
+            const secondsInDay = 24 * 60 * 60;
+            let offsetSeconds = getActiveZuluSeconds() - hHourSeconds;
+            if (offsetSeconds > secondsInDay / 2) offsetSeconds -= secondsInDay;
+            if (offsetSeconds < -secondsInDay / 2) offsetSeconds += secondsInDay;
+            return offsetSeconds / 60;
+        }
+
+        function getMinutePositionPercent(minute, range) {
+            if (!range || range.end === range.start) return 0;
+            return ((minute - range.start) / (range.end - range.start)) * 100;
+        }
+
+        function formatScheduleMinuteLabel(minute) {
+            if (minute === 0) {
+                const hHour = localStorage.getItem("fireplanHHour") || "";
+                return hHour ? `${hHour}Z` : "H";
+            }
+            return minute > 0 ? `H+${minute}` : `H${minute}`;
+        }
+
+        function getFireplanScheduleTargetRemarks(targetNumber) {
+            const list = getActiveFireplanTargetList();
+            if (!list || !Array.isArray(list.targets)) return "";
+            const normalizedNumber = formatTargetNumberValue(targetNumber || "");
+            const target = list.targets.find(item => item.targetNumber === normalizedNumber);
+            return target ? String(target.remarks || "").trim() : "";
+        }
+
+        function updateFireplanScheduleRemarksColumn() {
+            const rows = document.querySelectorAll(".fireplan-schedule-table tbody tr");
+            rows.forEach((row, rowIndex) => {
+                const cells = row.querySelectorAll("td");
+                const remarksCell = cells[3];
+                if (!remarksCell) return;
+                remarksCell.classList.add("fireplan-schedule-remarks-cell");
+                const remarks = fireplanScheduleAssignments
+                    .filter(item => item.rowIndex === rowIndex)
+                    .map(item => ({
+                        targetNumber: item.targetNumber,
+                        remarks: getFireplanScheduleTargetRemarks(item.targetNumber),
+                    }))
+                    .filter((item, index, items) => (
+                        item.remarks &&
+                        items.findIndex(candidate => candidate.targetNumber === item.targetNumber) === index
+                    ));
+                remarksCell.innerHTML = remarks.map(item => (
+                    `<div class="fireplan-schedule-remark"><strong>${escapeHtml(item.targetNumber)}</strong>: ${escapeHtml(item.remarks)}</div>`
+                )).join("");
+            });
+        }
+
+        function renderFireplanScheduleScale(centerOnH = true) {
+            initializeFireplanScheduleCells();
+            loadFireplanScheduleAssignments();
+            const range = getFireplanScheduleRange();
+            fireplanRenderedScheduleRange = range;
+            const currentZuluMinute = getCurrentFireplanZuluMinuteOffset();
+            const cells = document.querySelectorAll(".schedule-cell");
+            cells.forEach((cell, rowIndex) => {
+                const markers = [];
+                for (let minute = range.start; minute <= range.end; minute++) {
+                    const left = getMinutePositionPercent(minute, range);
+                    if (minute % 5 === 0) {
+                        markers.push(`<span class="schedule-marker major" style="left:${left}%"></span>`);
+                        markers.push(`<span class="schedule-label" style="left:${left}%">${escapeHtml(formatScheduleMinuteLabel(minute))}</span>`);
+                    }
+                }
+
+                const assignments = fireplanScheduleAssignments
+                    .filter(item => item.rowIndex === rowIndex)
+                    .map(item => {
+                        const fromMinute = Math.min(item.fromMinute, item.toMinute);
+                        const toMinute = Math.max(item.fromMinute, item.toMinute);
+                        const left = getMinutePositionPercent(fromMinute, range);
+                        const right = getMinutePositionPercent(toMinute, range);
+                        const width = Math.max(2, right - left);
+                        return `<button type="button" class="schedule-assignment" style="left:${left}%;width:${width}%" onclick="openFireplanScheduleAssignment(event, '${escapeHtml(item.id)}')"><span class="schedule-assignment-target">${escapeHtml(item.targetNumber)}</span></button>`;
+                    });
+                const currentMarker = currentZuluMinute === null
+                    ? ""
+                    : `<span class="schedule-current-marker" style="left:${getMinutePositionPercent(currentZuluMinute, range)}%"></span>`;
+
+                cell.innerHTML = `<div class="schedule-scale">${markers.join("")}${assignments.join("")}${currentMarker}</div>`;
+            });
+            updateFireplanScheduleRemarksColumn();
+            if (centerOnH) {
+                centerFireplanScheduleOnHHour();
+            }
+        }
+
+        function updateFireplanCurrentZuluMarker() {
+            const panel = document.getElementById("fireplanPanel");
+            if (!panel || panel.style.display === "none") return;
+            const cells = document.querySelectorAll(".schedule-cell");
+            if (!cells.length) return;
+            const currentZuluMinute = getCurrentFireplanZuluMinuteOffset();
+            if (currentZuluMinute === null) {
+                document.querySelectorAll(".schedule-current-marker").forEach(marker => marker.remove());
+                return;
+            }
+            const range = fireplanRenderedScheduleRange || getFireplanScheduleRange();
+            if (currentZuluMinute < range.start || currentZuluMinute > range.end) {
+                renderFireplanScheduleScale(false);
+                return;
+            }
+            const left = getMinutePositionPercent(currentZuluMinute, range);
+            cells.forEach(cell => {
+                const scale = cell.querySelector(".schedule-scale");
+                if (!scale) return;
+                let marker = scale.querySelector(".schedule-current-marker");
+                if (!marker) {
+                    marker = document.createElement("span");
+                    marker.className = "schedule-current-marker";
+                    scale.appendChild(marker);
+                }
+                marker.style.left = `${left}%`;
+            });
+        }
+
+        function centerFireplanScheduleOnHHour() {
+            const range = getFireplanScheduleRange();
+            const hPosition = getMinutePositionPercent(0, range) / 100;
+            document.querySelectorAll(".schedule-cell").forEach(cell => {
+                const scale = cell.querySelector(".schedule-scale");
+                if (!scale) return;
+                const targetLeft = (scale.offsetWidth * hPosition) - (cell.clientWidth / 2);
+                cell.scrollLeft = Math.max(0, targetLeft);
+            });
+        }
+
+        function handleFireplanScheduleCellClick(event) {
+            if (event.target.closest(".schedule-assignment")) return;
+            const list = getActiveFireplanTargetList();
+            if (!list) {
+                alert("Select a target list before scheduling targets.");
+                return;
+            }
+            const cell = event.currentTarget;
+            const row = cell.closest("tr");
+            const unitCell = row ? row.querySelectorAll("td")[1] : null;
+            if (!unitCell || !unitCell.textContent.trim()) {
+                alert("No available firing unit on this row.");
+                return;
+            }
+            const rowIndex = parseInt(cell.dataset.scheduleRow, 10) || 0;
+            const rect = cell.getBoundingClientRect();
+            const range = getFireplanScheduleRange();
+            const scale = cell.querySelector(".schedule-scale");
+            const scaleWidth = scale ? scale.offsetWidth : rect.width;
+            const x = event.clientX - rect.left + cell.scrollLeft;
+            const ratio = scaleWidth ? x / scaleWidth : 0;
+            const minute = Math.round(range.start + Math.max(0, Math.min(1, ratio)) * (range.end - range.start));
+            openFireplanSchedulePopup(rowIndex, minute);
+        }
+
+        function openFireplanScheduleAssignment(event, assignmentId) {
+            event.stopPropagation();
+            const assignment = fireplanScheduleAssignments.find(item => item.id === assignmentId);
+            if (!assignment) return;
+            openFireplanSchedulePopup(assignment.rowIndex, assignment.fromMinute, assignment);
+        }
+
+        function openFireplanSchedulePopup(rowIndex, minute, assignment = null) {
+            activeFireplanScheduleRow = rowIndex;
+            editingFireplanScheduleId = assignment ? assignment.id : "";
+            setValue("scheduleTargetNumberInput", assignment ? assignment.targetNumber : "");
+            setValue("scheduleFromInput", assignment ? assignment.fromMinute : minute);
+            setValue("scheduleToInput", assignment ? assignment.toMinute : minute + 1);
+            const deleteButton = document.getElementById("deleteScheduleAssignmentBtn");
+            if (deleteButton) {
+                deleteButton.style.display = assignment ? "inline-block" : "none";
+            }
+            const overlay = document.getElementById("fireplanScheduleOverlay");
+            if (overlay) {
+                overlay.classList.add("open");
+            }
+            const targetInput = document.getElementById("scheduleTargetNumberInput");
+            if (targetInput) {
+                targetInput.focus();
+            }
+        }
+
+        function closeFireplanSchedulePopup() {
+            const overlay = document.getElementById("fireplanScheduleOverlay");
+            if (overlay) {
+                overlay.classList.remove("open");
+            }
+            editingFireplanScheduleId = "";
+        }
+
+        function formatFireplanScheduleTargetInput() {
+            const input = document.getElementById("scheduleTargetNumberInput");
+            if (input) {
+                input.value = formatTargetNumberValue(input.value);
+            }
+        }
+
+        function saveFireplanScheduleAssignment() {
+            const list = getActiveFireplanTargetList();
+            if (!list) {
+                alert("Select a target list before scheduling targets.");
+                return;
+            }
+            const targetNumber = formatTargetNumberValue(getValue("scheduleTargetNumberInput", ""));
+            let fromMinute = parseInt(getValue("scheduleFromInput", ""), 10);
+            let toMinute = parseInt(getValue("scheduleToInput", ""), 10);
+            if (!targetNumber || !Number.isFinite(fromMinute) || !Number.isFinite(toMinute)) {
+                alert("Enter a target number and a from/to time.");
+                return;
+            }
+            if (toMinute < fromMinute) {
+                const swapMinute = fromMinute;
+                fromMinute = toMinute;
+                toMinute = swapMinute;
+            }
+            if (toMinute === fromMinute) {
+                toMinute = fromMinute + 1;
+            }
+
+            const assignment = {
+                id: editingFireplanScheduleId || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                rowIndex: activeFireplanScheduleRow,
+                targetNumber,
+                fromMinute,
+                toMinute,
+            };
+
+            const existingIndex = fireplanScheduleAssignments.findIndex(item => item.id === assignment.id);
+            if (existingIndex >= 0) {
+                fireplanScheduleAssignments[existingIndex] = assignment;
+            } else {
+                fireplanScheduleAssignments.push(assignment);
+            }
+
+            saveFireplanScheduleAssignments();
+            renderFireplanScheduleScale();
+            closeFireplanSchedulePopup();
+        }
+
+        function deleteFireplanScheduleAssignment() {
+            if (!editingFireplanScheduleId) return;
+            fireplanScheduleAssignments = fireplanScheduleAssignments.filter(item => item.id !== editingFireplanScheduleId);
+            saveFireplanScheduleAssignments();
+            renderFireplanScheduleScale();
+            closeFireplanSchedulePopup();
+        }
+
+        function getActiveTargetList() {
+            if (!targetLists.length) return null;
+            let list = targetLists.find(item => item.id === activeTargetListId);
+            if (!list) {
+                list = targetLists[0];
+                activeTargetListId = list.id;
+                saveTargetLists();
+            }
+            return list;
+        }
+
+        function createTargetList() {
+            const name = prompt("Target list name:");
+            if (name === null) return;
+            const trimmedName = formatListName(name);
+            if (!trimmedName) {
+                alert("Enter a name for the target list.");
+                return;
+            }
+
+            const list = {
+                id: `target-list-${Date.now()}`,
+                name: trimmedName,
+                createdAt: new Date().toISOString(),
+                targets: [],
+            };
+            targetLists.push(list);
+            activeTargetListId = list.id;
+            saveTargetLists();
+            updateTargetListsDisplay();
+        }
+
+        function selectTargetList(listId) {
+            activeTargetListId = listId;
+            selectedTargetListTargetIds = [];
+            saveTargetLists();
+            updateTargetListsDisplay();
+        }
+
+        function deleteActiveTargetList() {
+            const list = getActiveTargetList();
+            if (!list) {
+                alert("Select a target list before pressing Delete.");
+                return;
+            }
+            if (!confirm(`Delete target list ${list.name} and all targets inside?`)) return;
+            targetLists = targetLists.filter(item => item.id !== list.id);
+            activeTargetListId = targetLists[0] ? targetLists[0].id : "";
+            saveTargetLists();
+            updateTargetListsDisplay();
+        }
+
+        function getTargetFromActiveList(targetId) {
+            const list = getActiveTargetList();
+            if (!list || !Array.isArray(list.targets)) return null;
+            return list.targets.find(target => target.id === targetId) || null;
+        }
+
+        function showTargetEntryForm(targetId = "") {
+            const form = document.getElementById("targetEntryForm");
+            if (!form) return;
+            const list = getActiveTargetList();
+            if (!list) {
+                alert("Create a target list first.");
+                return;
+            }
+            const target = targetId ? getTargetFromActiveList(targetId) : null;
+            editingTargetListTargetId = target ? target.id : "";
+            const nextNumber = target ? target.targetNumber : generateMissionName();
+            if (!nextNumber) {
+                alert("The selected target block is full. Update the target block range in Settings.");
+                return;
+            }
+            setValue("targetListNumberInput", nextNumber);
+            setValue("targetListLocationInput", target ? target.location : "");
+            setValue("targetListAltitudeInput", target ? target.altitude : "");
+            setValue("targetListDescriptionInput", target ? target.description : "");
+            setValue("targetListAmmunitionInput", target ? target.ammunition : "");
+            setValue("targetListQuantityInput", target ? target.quantity : "");
+            setValue("targetListMethodControlInput", target ? target.methodOfControl : "When Ready");
+            setValue("targetListRemarksInput", target ? target.remarks : "");
+            const targetNumberInput = document.getElementById("targetListNumberInput");
+            if (targetNumberInput) {
+                targetNumberInput.readOnly = Boolean(target);
+                delete targetNumberInput.dataset.lastAutofillTarget;
+            }
+            const saveButton = document.getElementById("saveTargetListTargetButton");
+            if (saveButton) saveButton.innerText = target ? "Save Changes" : "Save Target";
+            form.classList.add("visible");
+        }
+
+        function hideTargetEntryForm() {
+            const form = document.getElementById("targetEntryForm");
+            if (form) form.classList.remove("visible");
+            editingTargetListTargetId = "";
+        }
+
+        function saveTargetListTarget() {
+            const list = getActiveTargetList();
+            if (!list) {
+                alert("Create a target list first.");
+                return;
+            }
+            const targetNumber = formatTargetNumberValue(getValue("targetListNumberInput", ""));
+            setValue("targetListNumberInput", targetNumber);
+            const location = normalizeGridInputValue(getValue("targetListLocationInput", ""));
+            if (!targetNumber || location.length !== 10) {
+                alert("Target number and a 10 figure location are required.");
+                return;
+            }
+            const altitude = getValue("targetListAltitudeInput", "");
+            list.targets = Array.isArray(list.targets) ? list.targets : [];
+            const existingTarget = editingTargetListTargetId
+                ? list.targets.find(target => target.id === editingTargetListTargetId)
+                : null;
+            if (!existingTarget && isTargetNumberInTargetLists(targetNumber)) {
+                alert(`${targetNumber} already exists in a target list.`);
+                return;
+            }
+            const targetData = {
+                targetNumber,
+                location,
+                altitude: clampNumberInputValue(altitude, 0, 999),
+                description: getValue("targetListDescriptionInput", ""),
+                ammunition: getValue("targetListAmmunitionInput", ""),
+                quantity: clampNumberInputValue(getValue("targetListQuantityInput", ""), 0, 999),
+                methodOfControl: getValue("targetListMethodControlInput", ""),
+                remarks: getValue("targetListRemarksInput", ""),
+            };
+            if (existingTarget) {
+                Object.assign(existingTarget, targetData, { updatedAt: new Date().toISOString() });
+            } else {
+                list.targets.push({
+                    id: `target-${Date.now()}`,
+                    ...targetData,
+                    createdAt: new Date().toISOString(),
+                });
+            }
+            saveTargetLists();
+            hideTargetEntryForm();
+            updateTargetListsDisplay();
+        }
+
+        function updateTargetListDeleteButtonState() {
+            const targetSelected = selectedTargetListTargetIds.length;
+            const deleteTargetsButton = document.getElementById("deleteTargetListTargetsButton");
+            if (deleteTargetsButton) deleteTargetsButton.disabled = targetSelected === 0;
+            const openButton = document.getElementById("openTargetListTargetButton");
+            const modifyButton = document.getElementById("modifyTargetListTargetButton");
+            if (openButton) openButton.disabled = targetSelected !== 1;
+            if (modifyButton) modifyButton.disabled = targetSelected !== 1;
+        }
+
+        function getSelectedTargetListTargetIds() {
+            return selectedTargetListTargetIds.slice();
+        }
+
+        function refreshTargetListRowSelection() {
+            document.querySelectorAll(".target-list-target-row").forEach(row => {
+                row.classList.toggle("selected", selectedTargetListTargetIds.includes(row.dataset.targetId));
+            });
+            updateTargetListDeleteButtonState();
+        }
+
+        function selectTargetListTargetRow(event, targetId) {
+            if (!targetId) return;
+            if (event && (event.ctrlKey || event.metaKey)) {
+                if (selectedTargetListTargetIds.includes(targetId)) {
+                    selectedTargetListTargetIds = selectedTargetListTargetIds.filter(id => id !== targetId);
+                } else {
+                    selectedTargetListTargetIds.push(targetId);
+                }
+            } else {
+                selectedTargetListTargetIds = selectedTargetListTargetIds.length === 1 && selectedTargetListTargetIds[0] === targetId
+                    ? []
+                    : [targetId];
+            }
+            refreshTargetListRowSelection();
+        }
+
+        function getSingleSelectedTargetListTarget() {
+            const selected = getSelectedTargetListTargetIds();
+            if (selected.length !== 1) {
+                alert("Select one target first.");
+                return null;
+            }
+            return getTargetFromActiveList(selected[0]);
+        }
+
+        function openSelectedTargetListTarget() {
+            const target = getSingleSelectedTargetListTarget();
+            if (!target) return;
+            showGrid(true);
+            setValue("missionNameInput", target.targetNumber || "");
+            applySavedTargetToMissionByNumber(target.targetNumber);
+        }
+
+        function modifySelectedTargetListTarget() {
+            const selected = getSelectedTargetListTargetIds();
+            if (selected.length !== 1) {
+                alert("Select one target first.");
+                return;
+            }
+            showTargetEntryForm(selected[0]);
+        }
+
+        function setTargetListSidebarOpen(open) {
+            const control = document.getElementById("targetListSidebarControl");
+            if (control) {
+                control.classList.toggle("active", Boolean(open));
+            }
+        }
+
+        function deleteSelectedTargetListTargets() {
+            const list = getActiveTargetList();
+            if (!list) return;
+            const selected = getSelectedTargetListTargetIds();
+            if (!selected.length) {
+                alert("Select one or more targets before pressing Delete.");
+                return;
+            }
+            if (!confirm(`Delete ${selected.length} target(s) from ${list.name}?`)) return;
+            list.targets = (list.targets || []).filter(target => !selected.includes(target.id));
+            selectedTargetListTargetIds = selectedTargetListTargetIds.filter(id => !selected.includes(id));
+            saveTargetLists();
+            updateTargetListsDisplay();
+        }
+
+        function updateTargetListsDisplay() {
+            const container = document.getElementById("targetListsManager");
+            const activeList = getActiveTargetList();
+            updateTargetListSidebarMenu(activeList);
+            if (!container) return;
+            const targets = activeList && Array.isArray(activeList.targets) ? activeList.targets : [];
+            const targetIds = new Set(targets.map(target => target.id));
+            selectedTargetListTargetIds = selectedTargetListTargetIds.filter(id => targetIds.has(id));
+            const targetRows = targets.length
+                ? targets.map(target => `
+                    <tr class="target-list-target-row${selectedTargetListTargetIds.includes(target.id) ? " selected" : ""}" data-target-id="${target.id}" onclick="selectTargetListTargetRow(event, '${target.id}')">
+                        <td>${escapeHtml(target.targetNumber)}</td>
+                        <td>${escapeHtml(target.location)}</td>
+                        <td>${escapeHtml(target.altitude || "N/A")}</td>
+                        <td>${escapeHtml(target.description || "N/A")}</td>
+                        <td>${escapeHtml(target.ammunition || "N/A")}${target.quantity ? ` ${escapeHtml(target.quantity)} RDS` : ""}</td>
+                        <td>${escapeHtml(target.methodOfControl || "N/A")}</td>
+                        <td>${escapeHtml(target.remarks || "N/A")}</td>
+                    </tr>
+                `).join("")
+                : '<tr><td colspan="7">No targets in this list.</td></tr>';
+
+            container.innerHTML = `
+                <div class="target-list-detail">
+                    <div class="recorded-targets-panel-header">
+                        <div class="panel-title">${activeList ? escapeHtml(activeList.name) : "No Target List Selected"}</div>
+                        <div class="panel-actions">
+                            <button type="button" id="openTargetListTargetButton" class="target-list-action-btn" onclick="openSelectedTargetListTarget()" disabled>Open</button>
+                            <button type="button" id="modifyTargetListTargetButton" class="target-list-action-btn" onclick="modifySelectedTargetListTarget()" disabled>Modify</button>
+                            <button type="button" class="target-list-action-btn" onclick="showTargetEntryForm()">New Target</button>
+                            <button type="button" id="deleteTargetListTargetsButton" class="delete-targets-btn" onclick="deleteSelectedTargetListTargets()" disabled>Delete Selected</button>
+                            <button type="button" class="delete-targets-btn target-list-delete-active${activeList ? " visible" : ""}" onclick="deleteActiveTargetList()">Delete List</button>
+                        </div>
+                    </div>
+                    <div class="target-list-form" id="targetEntryForm">
+                        <div class="input-group">
+                            <label>Target Number</label>
+                            <input id="targetListNumberInput" type="text" placeholder="Target number" oninput="applyTargetListTargetNumberAutofill()" onblur="applyTargetListTargetNumberAutofill()">
+                        </div>
+                        <div class="input-group">
+                            <label>Location</label>
+                            <input id="targetListLocationInput" type="text" maxlength="10" placeholder="MGRS" onblur="normalizeGridInput('targetListLocationInput')">
+                        </div>
+                        <div class="input-group">
+                            <label>Altitude</label>
+                            <input id="targetListAltitudeInput" type="number" min="0" max="999" placeholder="Meters" onblur="clampNumberInput('targetListAltitudeInput', 0, 999)">
+                        </div>
+                        <div class="target-list-ammo-row">
+                            <div class="input-group">
+                                <label>Ammunition</label>
+                                <select id="targetListAmmunitionInput">${getAmmoOptionsMarkup()}</select>
+                            </div>
+                            <div class="input-group">
+                                <label>Qty</label>
+                                <input id="targetListQuantityInput" type="number" min="0" max="999" placeholder="Qty" onblur="clampNumberInput('targetListQuantityInput', 0, 999)">
+                            </div>
+                        </div>
+                        <div class="input-group full-width">
+                            <label>Description</label>
+                            <input id="targetListDescriptionInput" type="text" placeholder="Description">
+                        </div>
+                        <div class="input-group">
+                            <label>Method of Control</label>
+                            <select id="targetListMethodControlInput">
+                                <option value="When Ready">When Ready</option>
+                                <option value="At my command">At my command</option>
+                                <option value="Time on target">Time on target</option>
+                            </select>
+                        </div>
+                        <div class="input-group full-width">
+                            <label>Remarks</label>
+                            <input id="targetListRemarksInput" type="text" placeholder="Remarks">
+                        </div>
+                        <div class="target-list-form-actions">
+                            <button type="button" class="delete-targets-btn" onclick="hideTargetEntryForm()">Cancel</button>
+                            <button type="button" id="saveTargetListTargetButton" class="target-list-action-btn" onclick="saveTargetListTarget()">Save Target</button>
+                        </div>
+                    </div>
+                    <table class="recorded-targets-table target-list-table">
+                        <thead>
+                            <tr>
+                                <th>Target Number</th>
+                                <th>Location</th>
+                                <th>Altitude</th>
+                                <th>Description</th>
+                                <th>Ammunition</th>
+                                <th>Method of Control</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>${targetRows}</tbody>
+                    </table>
+                </div>
+            `;
+            updateTargetListDeleteButtonState();
+        }
+
+        function updateTargetListSidebarMenu(activeList = getActiveTargetList()) {
+            const menu = document.getElementById("targetListSidebarMenu");
+            if (!menu) return;
+            const listsMarkup = targetLists.length
+                ? targetLists.map(list => `
+                    <div class="target-list-row${list.id === activeTargetListId ? " active" : ""}" onclick="selectTargetList('${list.id}')">
+                        <div>${escapeHtml(list.name)}</div>
+                    </div>
+                `).join("")
+                : '<div class="no-targets">No target lists yet</div>';
+            menu.innerHTML = `
+                <div class="target-list-toolbar">
+                    <button type="button" class="target-list-action-btn" onclick="createTargetList()">New Target List</button>
+                </div>
+                ${listsMarkup}
+            `;
+        }
+
         function recordTarget(firingData) {
             const nameInput = document.getElementById("missionNameInput");
-            let name = (nameInput && nameInput.value.trim()) || currentMissionName || generateMissionName();
+            let name = formatTargetNumberValue((nameInput && nameInput.value) || currentMissionName || generateMissionName());
             if (!name) {
                 alert("The selected target block is full. Update the target block range in Settings.");
                 return false;
@@ -3721,7 +5902,27 @@ ${getAngleModeMarkup()}
             `;
         }
 
+        function clearPlanView() {
+            const canvas = document.getElementById("planViewCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#00ff66";
+            ctx.font = "16px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("No plan view data", canvas.width / 2, canvas.height / 2);
+        }
+
         function clearInputs() {
+            setValue("missionNameInput", "");
+            const missionNameInput = document.getElementById("missionNameInput");
+            if (missionNameInput) {
+                missionNameInput.placeholder = getMissionNamePlaceholder();
+                delete missionNameInput.dataset.lastAutofillTarget;
+            }
+
             // Clear grid inputs
             setValue("targetLocationInput", "");
             setValue("targetAltitudeInput", "");
@@ -3767,25 +5968,60 @@ ${getAngleModeMarkup()}
             setValue("rangeValueInput", "");
         }
 
+        function saveCurrentMissionFormState() {
+            const formArea = document.getElementById("formArea");
+            if (!formArea || formArea.style.display === "none") return;
+            formatTargetNumberInput("missionNameInput");
+            missionFormState = {
+                ...missionFormState,
+                ...captureMissionInputs(),
+                missionNameInput: formatTargetNumberValue(getValue("missionNameInput", currentMissionName || "")),
+            };
+        }
+
+        function restoreMissionFormState() {
+            if (!missionFormState || Object.keys(missionFormState).length === 0) return;
+            const missionNameInput = document.getElementById("missionNameInput");
+            if (missionNameInput && missionFormState.missionNameInput !== undefined) {
+                missionNameInput.value = missionFormState.missionNameInput;
+            }
+            populateMissionInputs(missionFormState);
+        }
+
+        function clearMissionFormData() {
+            currentMissionName = null;
+            missionFormState = {};
+            clearInputs();
+            clearResults();
+            clearPlanView();
+            resetCalculationState();
+            localStorage.removeItem("pendingFiringSolutions");
+            updateFireButtonState();
+        }
+
         function updateRecordedTargetsDisplay() {
             const list = document.getElementById("recordedTargetsList");
             if (recordedTargets.length === 0) {
-                list.innerHTML = '<div class="no-targets">No recorded targets yet</div>';
+                selectedRecordedTargetNames = [];
+                list.innerHTML = '<div class="recorded-targets-panel-header"><div class="panel-title">Recorded Targets</div><div class="panel-actions"><button id="openRecordedTargetButton" class="target-list-action-btn" disabled>Open</button><button id="modifyRecordedTargetButton" class="target-list-action-btn" disabled>Modify</button></div></div><div class="no-targets">No recorded targets yet</div>';
                 return;
             }
+            const recordedNames = new Set(recordedTargets.map(target => target.name));
+            selectedRecordedTargetNames = selectedRecordedTargetNames.filter(name => recordedNames.has(name));
 
             list.innerHTML = `
                 <div class="recorded-targets-panel-header">
                     <div class="panel-title">Recorded Targets</div>
                     <div class="panel-actions">
+                        <button id="openRecordedTargetButton" class="target-list-action-btn" onclick="openSelectedRecordedTarget()" disabled>Open</button>
+                        <button id="modifyRecordedTargetButton" class="target-list-action-btn" onclick="modifySelectedRecordedTarget()" disabled>Modify</button>
                         <button id="deleteRecordedTargetsButton" class="delete-targets-btn" onclick="deleteSelectedRecordedTargets()" disabled>Delete Selected</button>
                     </div>
                 </div>
                 <table class="recorded-targets-table">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="selectAllRecordedTargets" onchange="toggleSelectAllTargets(this)"></th>
-                            <th>Mission Number</th>
+                            <th>Target Number</th>
                             <th>Location</th>
                             <th>Altitude</th>
                             <th>Adjusted Aim Grid</th>
@@ -3793,13 +6029,11 @@ ${getAngleModeMarkup()}
                             <th>Description</th>
                             <th>Method of Engagement</th>
                             <th>Method of Fire Control</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${recordedTargets.map(target => `
-                            <tr class="recorded-target-row">
-                                <td><input type="checkbox" class="recorded-target-checkbox" data-target-name="${target.name}" onchange="updateRecordedDeleteButtonState()"></td>
+                            <tr class="recorded-target-row${selectedRecordedTargetNames.includes(target.name) ? " selected" : ""}" data-target-name="${target.name}" onclick="selectRecordedTargetRow(event, '${target.name}')">
                                 <td>${target.name}</td>
                                 <td>${target.location || 'N/A'}</td>
                                 <td>${target.altitude || 'N/A'}</td>
@@ -3808,7 +6042,6 @@ ${getAngleModeMarkup()}
                                 <td>${target.targetDescription || 'N/A'}</td>
                                 <td>${target.methodOfEngagement || 'N/A'}</td>
                                 <td>${target.methodOfFireControl || 'N/A'}</td>
-                                <td><button class="load-mission-btn" onclick="loadMission('${target.name}')">Open</button></td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -3818,29 +6051,69 @@ ${getAngleModeMarkup()}
             updateRecordedDeleteButtonState();
         }
 
-        function toggleSelectAllTargets(masterCheckbox) {
-            const checkboxes = document.querySelectorAll('.recorded-target-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = masterCheckbox.checked;
+        function refreshRecordedTargetRowSelection() {
+            document.querySelectorAll(".recorded-target-row").forEach(row => {
+                row.classList.toggle("selected", selectedRecordedTargetNames.includes(row.dataset.targetName));
             });
             updateRecordedDeleteButtonState();
         }
 
+        function selectRecordedTargetRow(event, targetName) {
+            if (!targetName) return;
+            if (event && (event.ctrlKey || event.metaKey)) {
+                if (selectedRecordedTargetNames.includes(targetName)) {
+                    selectedRecordedTargetNames = selectedRecordedTargetNames.filter(name => name !== targetName);
+                } else {
+                    selectedRecordedTargetNames.push(targetName);
+                }
+            } else {
+                selectedRecordedTargetNames = selectedRecordedTargetNames.length === 1 && selectedRecordedTargetNames[0] === targetName
+                    ? []
+                    : [targetName];
+            }
+            refreshRecordedTargetRowSelection();
+        }
+
         function updateRecordedDeleteButtonState() {
-            const selected = document.querySelectorAll('.recorded-target-checkbox:checked').length;
+            const selected = selectedRecordedTargetNames.length;
             const deleteButton = document.getElementById('deleteRecordedTargetsButton');
             if (deleteButton) {
                 deleteButton.disabled = selected === 0;
             }
+            const openButton = document.getElementById("openRecordedTargetButton");
+            const modifyButton = document.getElementById("modifyRecordedTargetButton");
+            if (openButton) openButton.disabled = selected !== 1;
+            if (modifyButton) modifyButton.disabled = selected !== 1;
+        }
+
+        function getSelectedRecordedTargetNames() {
+            return selectedRecordedTargetNames.slice();
+        }
+
+        function getSingleSelectedRecordedTargetName() {
+            const selected = getSelectedRecordedTargetNames();
+            if (selected.length !== 1) {
+                alert("Select one recorded target first.");
+                return "";
+            }
+            return selected[0];
+        }
+
+        function openSelectedRecordedTarget() {
+            const targetName = getSingleSelectedRecordedTargetName();
+            if (targetName) loadMission(targetName);
+        }
+
+        function modifySelectedRecordedTarget() {
+            const targetName = getSingleSelectedRecordedTargetName();
+            if (targetName) loadMission(targetName);
         }
 
         function deleteSelectedRecordedTargets() {
-            const selected = Array.from(document.querySelectorAll('.recorded-target-checkbox:checked'))
-                .map(cb => cb.getAttribute('data-target-name'))
-                .filter(Boolean);
+            const selected = getSelectedRecordedTargetNames();
 
             if (selected.length === 0) {
-                alert('Select one or more recorded targets before pressing Delete.');
+                alert('Select one or more saved targets before pressing Delete.');
                 return;
             }
 
@@ -3850,6 +6123,7 @@ ${getAngleModeMarkup()}
             }
 
             recordedTargets = recordedTargets.filter(target => !selected.includes(target.name));
+            selectedRecordedTargetNames = selectedRecordedTargetNames.filter(name => !selected.includes(name));
             saveRecordedTargets();
             updateRecordedTargetsDisplay();
         }
@@ -4140,24 +6414,44 @@ ${getAngleModeMarkup()}
             // Hide mission form and results area
             document.querySelector('.main-grid').style.display = 'none';
             document.getElementById("recordedTargetsPanel").style.display = "block";
+            document.getElementById("fireplanPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "none";
+            setTargetListSidebarOpen(true);
 
             // Update tab states
             document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
             document.getElementById("recordedTargetsTab").classList.add("active");
 
+            updateTargetListsDisplay();
             updateRecordedTargetsDisplay();
+        }
+
+        function showFireplan() {
+            saveCurrentMissionFormState();
+            document.querySelector('.main-grid').style.display = 'none';
+            document.getElementById("recordedTargetsPanel").style.display = "none";
+            document.getElementById("fireplanPanel").style.display = "block";
+            document.getElementById("settingsPanel").style.display = "none";
+            setTargetListSidebarOpen(false);
+            initializeFireplanInputs();
+
+            document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+            document.getElementById("fireplanTab").classList.add("active");
         }
 
         function showSettings() {
             document.querySelector('.main-grid').style.display = 'none';
             document.getElementById("recordedTargetsPanel").style.display = "none";
+            document.getElementById("fireplanPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "block";
+            setTargetListSidebarOpen(false);
 
             document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
             document.getElementById("settingsTab").classList.add("active");
 
             updateZuluTimeDisplay();
+            updateNotificationVolumeDisplay();
+            updateMetWindSpeedDisplay();
             populateTargetBlockSettings();
         }
 
@@ -4320,7 +6614,7 @@ ${getAngleModeMarkup()}
             const selected = rankedCharges[0];
             if (!selected) {
                 return {
-                    ammunition: shell.type,
+                    ammunition: ammunitionType || shell.type,
                     charge: forcedChargeLevel === null ? "N/A" : forcedChargeLevel,
                     elevation: "N/A",
                     time: "N/A",
@@ -4330,7 +6624,7 @@ ${getAngleModeMarkup()}
             }
 
             return {
-                ammunition: shell.type,
+                ammunition: ammunitionType || shell.type,
                 charge: selected.charge.level,
                 elevation: selected.interpolated.elevation,
                 time: selected.interpolated.tof,
@@ -4387,7 +6681,7 @@ ${getAngleModeMarkup()}
             const selected = rankedCharges[0];
             if (!selected) {
                 return {
-                    ammunition: shell.type,
+                    ammunition: ammunitionType || shell.type,
                     charge: forcedChargeLevel === null ? "N/A" : forcedChargeLevel,
                     elevation: "N/A",
                     time: "N/A",
@@ -4397,7 +6691,7 @@ ${getAngleModeMarkup()}
             }
 
             return {
-                ammunition: shell.type,
+                ammunition: ammunitionType || shell.type,
                 charge: selected.charge.level,
                 elevation: selected.elevation,
                 time: selected.time,
@@ -4685,6 +6979,7 @@ ${getAngleModeMarkup()}
         }
 
         function showGrid(keepCalculationState = false) {
+            saveCurrentMissionFormState();
             if (!keepCalculationState) {
                 resetCalculationState();
             }
@@ -4692,34 +6987,37 @@ ${getAngleModeMarkup()}
             document.getElementById("gridTab").classList.add("active");
             document.getElementById("polarTab").classList.remove("active");
             document.getElementById("recordedTargetsTab").classList.remove("active");
+            document.getElementById("fireplanTab").classList.remove("active");
             document.getElementById("settingsTab").classList.remove("active");
+            setTargetListSidebarOpen(false);
 
             document.querySelector('.main-grid').style.display = 'grid';
             document.getElementById("formArea").style.display = "block";
             document.getElementById("recordedTargetsPanel").style.display = "none";
+            document.getElementById("fireplanPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "none";
 
             document.getElementById("formArea").innerHTML = `
 
                 <div class="input-group target-number-group">
                     <label>Target Number</label>
-                    <input id="missionNameInput" type="text" placeholder="${getMissionNamePlaceholder()}">
+                    <input id="missionNameInput" type="text" placeholder="${getMissionNamePlaceholder()}" oninput="formatTargetNumberInput('missionNameInput')" onblur="formatTargetNumberInput('missionNameInput')">
                 </div>
 
                 <div class="input-row">
                     <div class="input-group">
                         <label>Target Location</label>
-                        <input id="targetLocationInput" type="text" placeholder="MGRS">
+                        <input id="targetLocationInput" type="text" maxlength="10" placeholder="MGRS" onblur="normalizeGridInput('targetLocationInput')">
                     </div>
                     <div class="input-group">
                         <label>Target Altitude</label>
-                        <input id="targetAltitudeInput" type="number" placeholder="Meters">
+                        <input id="targetAltitudeInput" type="number" min="0" max="999" placeholder="Meters" onblur="clampNumberInput('targetAltitudeInput', 0, 999)">
                     </div>
                 </div>
 
                 <div class="input-group">
                     <label>Direction to Target (mils)</label>
-                    <input id="directionInput" type="number" placeholder="Bearing (mils)">
+                    <input id="directionInput" type="number" min="0" max="6400" placeholder="Bearing (mils)" onblur="clampNumberInput('directionInput', 0, 6400)">
                 </div>
                 <div class="input-group">
                     <label>Target Description</label>
@@ -4741,6 +7039,9 @@ ${getEngagementControlsMarkup()}
                 <div class="mission-action-row">
                     <button class="calculate-btn" id="calculateBtn">
                         CALCULATE
+                    </button>
+                    <button type="button" class="calculate-btn" onclick="clearMissionFormData()">
+                        CLEAR DATA
                     </button>
                     <div class="accept-control">
                         <button type="button" class="accept-btn" id="acceptButton" onclick="acceptFiringData()" disabled>
@@ -4764,11 +7065,14 @@ ${getEngagementControlsMarkup()}
             setEngagementTimingMode(getValue("engagementTimingInput", "When Ready"));
             setHighAngleMode(false);
             setDangerClose(false);
+            restoreMissionFormState();
             setupCalculateButton();
+            setupTargetNumberAutofill();
             updateFireButtonState();
         }
 
         function showPolar(keepCalculationState = false) {
+            saveCurrentMissionFormState();
             if (!keepCalculationState) {
                 resetCalculationState();
             }
@@ -4776,28 +7080,31 @@ ${getEngagementControlsMarkup()}
             document.getElementById("polarTab").classList.add("active");
             document.getElementById("gridTab").classList.remove("active");
             document.getElementById("recordedTargetsTab").classList.remove("active");
+            document.getElementById("fireplanTab").classList.remove("active");
             document.getElementById("settingsTab").classList.remove("active");
+            setTargetListSidebarOpen(false);
 
             document.querySelector('.main-grid').style.display = 'grid';
             document.getElementById("formArea").style.display = "block";
             document.getElementById("recordedTargetsPanel").style.display = "none";
+            document.getElementById("fireplanPanel").style.display = "none";
             document.getElementById("settingsPanel").style.display = "none";
 
             document.getElementById("formArea").innerHTML = `
 
                 <div class="input-group target-number-group">
                     <label>Target Number</label>
-                    <input id="missionNameInput" type="text" placeholder="${getMissionNamePlaceholder()}">
+                    <input id="missionNameInput" type="text" placeholder="${getMissionNamePlaceholder()}" oninput="formatTargetNumberInput('missionNameInput')" onblur="formatTargetNumberInput('missionNameInput')">
                 </div>
 
                 <div class="input-row">
                     <div class="input-group">
                         <label>Reference Location</label>
-                        <input id="referenceLocationInput" type="text" placeholder="MGRS">
+                        <input id="referenceLocationInput" type="text" maxlength="10" placeholder="MGRS" onblur="normalizeGridInput('referenceLocationInput')">
                     </div>
                     <div class="input-group">
                         <label>Reference Altitude</label>
-                        <input id="referenceAltitudeInput" type="number" placeholder="Meters">
+                        <input id="referenceAltitudeInput" type="number" min="0" max="999" placeholder="Meters" onblur="clampNumberInput('referenceAltitudeInput', 0, 999)">
                     </div>
                 </div>
 
@@ -4808,7 +7115,7 @@ ${getEngagementControlsMarkup()}
                     </div>
                     <div class="input-group">
                         <label>Direction to Target (mils)</label>
-                        <input id="directionInput" type="number" placeholder="Bearing (mils)">
+                        <input id="directionInput" type="number" min="0" max="6400" placeholder="Bearing (mils)" onblur="clampNumberInput('directionInput', 0, 6400)">
                     </div>
                 </div>
                 <div class="input-group">
@@ -4832,6 +7139,9 @@ ${getEngagementControlsMarkup()}
                     <button class="calculate-btn" id="calculateBtn">
                         CALCULATE
                     </button>
+                    <button type="button" class="calculate-btn" onclick="clearMissionFormData()">
+                        CLEAR DATA
+                    </button>
                     <div class="accept-control">
                         <button type="button" class="accept-btn" id="acceptButton" onclick="acceptFiringData()" disabled>
                             ACCEPT
@@ -4854,7 +7164,9 @@ ${getEngagementControlsMarkup()}
             setEngagementTimingMode(getValue("engagementTimingInput", "When Ready"));
             setHighAngleMode(false);
             setDangerClose(false);
+            restoreMissionFormState();
             setupCalculateButton();
+            setupTargetNumberAutofill();
             updateFireButtonState();
         }
 
@@ -4996,17 +7308,33 @@ ${getEngagementControlsMarkup()}
                 return;
             }
 
+            const missionNameInput = document.getElementById("missionNameInput");
+            const typedMissionName = formatTargetNumberValue(missionNameInput && missionNameInput.value);
+
             // Set mission name if not already set
-            if (!currentMissionName) {
+            if (typedMissionName) {
+                currentMissionName = typedMissionName;
+                if (missionNameInput) {
+                    missionNameInput.value = currentMissionName;
+                }
+                if (!options.bypassLock) {
+                    applyTargetNumberAutofill();
+                }
+            } else if (!currentMissionName) {
                 currentMissionName = generateMissionName();
                 if (!currentMissionName) {
                     alert("The selected target block is full. Update the target block range in Settings.");
                     return;
                 }
-                document.getElementById("missionNameInput").value = currentMissionName;
+                if (missionNameInput) {
+                    missionNameInput.value = currentMissionName;
+                }
             } else {
                 // Update currentMissionName from input field
-                currentMissionName = document.getElementById("missionNameInput").value.trim() || currentMissionName;
+                currentMissionName = typedMissionName || currentMissionName;
+                if (missionNameInput) {
+                    missionNameInput.value = currentMissionName;
+                }
             }
 
             const isGridMode = document.getElementById("gridTab").classList.contains("active");
@@ -5050,6 +7378,9 @@ ${getEngagementControlsMarkup()}
                 if (isGridMode) {
                     const targetLocationInput = document.getElementById("targetLocationInput");
                     const targetAltitudeInput = document.getElementById("targetAltitudeInput");
+                    normalizeGridInput("targetLocationInput");
+                    clampNumberInput("targetAltitudeInput", 0, 999);
+                    clampNumberInput("directionInput", 0, 6400);
 
                     targetPoint = parseGridPoint(targetLocationInput && targetLocationInput.value);
                     targetAltitude = parseFloat(targetAltitudeInput && targetAltitudeInput.value) || 0;
@@ -5063,6 +7394,9 @@ ${getEngagementControlsMarkup()}
                     const directionInput = document.getElementById("directionInput");
                     const distanceInput = document.getElementById("distanceInput");
                     const targetAltitudeInput = document.getElementById("targetAltitudeInput");
+                    normalizeGridInput("referenceLocationInput");
+                    clampNumberInput("referenceAltitudeInput", 0, 999);
+                    clampNumberInput("directionInput", 0, 6400);
 
                     const referencePoint = parseGridPoint(referenceLocationInput && referenceLocationInput.value);
                     targetAltitude = parseFloat(targetAltitudeInput && targetAltitudeInput.value) || 0;
@@ -5099,6 +7433,7 @@ ${getEngagementControlsMarkup()}
             const length = parseFloat(document.getElementById("lengthInput").value) || 100;
             const attitude = parseFloat(document.getElementById("attitudeInput").value) || 0;
             const width = parseFloat(document.getElementById("widthInput").value) || 50;
+            const metData = getMeteorologicalData();
 
             // Generate aim points for each unit based on distribution
             const aimPoints = [];
@@ -5154,45 +7489,63 @@ ${getEngagementControlsMarkup()}
                 }
 
                 const aimPoint = aimPoints[index];
-                const dx = aimPoint.x - gunPoint.x;
-                const dy = aimPoint.y - gunPoint.y;
-                const range = Math.hypot(dx, dy);
-                const bearingDeg = calculateBearing(dx, dy);
                 const usesM777BallisticData = Boolean(getM777WeaponId(systemConfig.weaponSystem));
                 const usesMortarBallisticData = Boolean(getMortarWeaponId(systemConfig.weaponSystem));
                 const ammunitionType = getSelectedAmmunitionType();
-                const m777FiringData = usesM777BallisticData
-                    ? calculateM777FiringData(range, ammunitionType, targetAltitude - unit.altitude, m777Data, systemConfig.weaponSystem, forcedChargeLevel, highAngleOnly)
-                    : null;
-                const mortarFiringData = usesMortarBallisticData
-                    ? calculateMortarFiringData(range, ammunitionType, mortarData, systemConfig.weaponSystem, forcedChargeLevel)
-                    : null;
-                const tableFiringData = m777FiringData || mortarFiringData;
-                const usesTableFiringData = usesM777BallisticData || usesMortarBallisticData;
-                const elevationRad = usesTableFiringData ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag, highAngleOnly);
-                const elevationDeg = elevationRad === null ? null : elevationRad * 180 / Math.PI;
-                const timeOfFlight = elevationRad === null ? null : range / Math.max(0.1, velocity * Math.cos(elevationRad));
-                const bearingMils = tableFiringData ? bearingDeg * ((tableFiringData.milsPerCircle || 6400) / 360) : degreesToMils(bearingDeg);
-                const elevationMils = elevationDeg === null ? null : degreesToMilsElevation(elevationDeg);
-                const timeOfFlightSeconds = tableFiringData && !tableFiringData.outOfRange
-                    ? tableFiringData.time
-                    : timeOfFlight;
+
+                const calculateForAimPoint = (point) => {
+                    const dx = point.x - gunPoint.x;
+                    const dy = point.y - gunPoint.y;
+                    const range = Math.hypot(dx, dy);
+                    const bearingDeg = calculateBearing(dx, dy);
+                    const m777FiringData = usesM777BallisticData
+                        ? calculateM777FiringData(range, ammunitionType, targetAltitude - unit.altitude, m777Data, systemConfig.weaponSystem, forcedChargeLevel, highAngleOnly)
+                        : null;
+                    const mortarFiringData = usesMortarBallisticData
+                        ? calculateMortarFiringData(range, ammunitionType, mortarData, systemConfig.weaponSystem, forcedChargeLevel)
+                        : null;
+                    const tableFiringData = m777FiringData || mortarFiringData;
+                    const usesTableFiringData = usesM777BallisticData || usesMortarBallisticData;
+                    const elevationRad = usesTableFiringData ? null : computeElevation(range, targetAltitude - unit.altitude, velocity, drag, highAngleOnly);
+                    const elevationDeg = elevationRad === null ? null : elevationRad * 180 / Math.PI;
+                    const timeOfFlight = elevationRad === null ? null : range / Math.max(0.1, velocity * Math.cos(elevationRad));
+                    const bearingMils = tableFiringData ? bearingDeg * ((tableFiringData.milsPerCircle || 6400) / 360) : degreesToMils(bearingDeg);
+                    const elevationMils = elevationDeg === null ? null : degreesToMilsElevation(elevationDeg);
+                    const timeOfFlightSeconds = tableFiringData && !tableFiringData.outOfRange
+                        ? tableFiringData.time
+                        : timeOfFlight;
+
+                    return {
+                        point,
+                        range,
+                        bearingMils,
+                        elevationMils,
+                        tableFiringData,
+                        timeOfFlight,
+                        timeOfFlightSeconds,
+                    };
+                };
+
+                const initialSolution = calculateForAimPoint(aimPoint);
+                const correctedAimPoint = applyMeteorologicalCorrection(aimPoint, initialSolution.timeOfFlightSeconds, metData);
+                aimPoints[index] = correctedAimPoint;
+                const finalSolution = calculateForAimPoint(correctedAimPoint);
 
                 solutions.push({
                     label: unit.label,
-                    ammunition: tableFiringData ? tableFiringData.ammunition : "",
-                    range: `${formatNumber(range, 1)} m`,
-                    bearing: `${formatNumber(bearingMils, 0)} mils`,
-                    elevation: tableFiringData
-                        ? (tableFiringData.outOfRange ? "N/A" : `${formatNumber(tableFiringData.elevation, 0)} mils`)
-                        : (elevationMils === null ? "N/A" : `${formatNumber(elevationMils, 0)} mils`),
-                    charge: tableFiringData ? tableFiringData.charge : "",
-                    time: tableFiringData
-                        ? (tableFiringData.outOfRange ? "N/A" : `${formatNumber(tableFiringData.time, 1)} s`)
-                        : (timeOfFlight === null ? "N/A" : `${formatNumber(timeOfFlight, 2)} s`),
-                    timeOfFlightSeconds,
-                    countdown: timeOfFlightSeconds === null ? "" : getTimeOnTargetCountdown(timeOfFlightSeconds),
-                    aimGrid: formatGridString(aimPoint),
+                    ammunition: finalSolution.tableFiringData ? finalSolution.tableFiringData.ammunition : "",
+                    range: `${formatNumber(finalSolution.range, 1)} m`,
+                    bearing: `${formatNumber(finalSolution.bearingMils, 0)} mils`,
+                    elevation: finalSolution.tableFiringData
+                        ? (finalSolution.tableFiringData.outOfRange ? "N/A" : `${formatNumber(finalSolution.tableFiringData.elevation, 0)} mils`)
+                        : (finalSolution.elevationMils === null ? "N/A" : `${formatNumber(finalSolution.elevationMils, 0)} mils`),
+                    charge: finalSolution.tableFiringData ? finalSolution.tableFiringData.charge : "",
+                    time: finalSolution.tableFiringData
+                        ? (finalSolution.tableFiringData.outOfRange ? "N/A" : `${formatNumber(finalSolution.tableFiringData.time, 1)} s`)
+                        : (finalSolution.timeOfFlight === null ? "N/A" : `${formatNumber(finalSolution.timeOfFlight, 2)} s`),
+                    timeOfFlightSeconds: finalSolution.timeOfFlightSeconds,
+                    countdown: finalSolution.timeOfFlightSeconds === null ? "" : getTimeOnTargetCountdown(finalSolution.timeOfFlightSeconds),
+                    aimGrid: formatGridString(correctedAimPoint),
                     targetAltitude: `${formatNumber(targetAltitude, 0)} m`,
                     gunAltitude: `${formatNumber(unit.altitude, 0)} m`,
                 });
@@ -5279,18 +7632,19 @@ ${getEngagementControlsMarkup()}
                 return;
             }
 
-            const adjustmentBasePoint = lastCalculationState.baseTargetPoint || lastCalculationState.targetPoint;
+            const adjustmentBasePoint = lastCalculationState.targetPoint;
 
-            // Get direction from mission input first, fall back to adjustment input
-            let directionMils = parseFloat(getValue("directionInput"));
+            // Use the adjustment bearing first so follow-up corrections can be sent on a new OT line.
+            let directionMils = parseFloat(getValue("adjustmentDirectionInput"));
             if (Number.isNaN(directionMils)) {
-                directionMils = parseFloat(getValue("adjustmentDirectionInput"));
+                directionMils = parseFloat(getValue("directionInput"));
             }
 
             if (Number.isNaN(directionMils)) {
                 alert("Please enter a valid direction (bearing in mils)");
                 return;
             }
+            directionMils = Math.max(0, Math.min(6400, directionMils));
 
             // Convert direction from mils to radians
             // Mils: 0-6400, where 0 is north, 1600 is east, 3200 is south, 4800 is west
@@ -5378,6 +7732,7 @@ ${getEngagementControlsMarkup()}
             }
             populateTargetBlockSettings();
             updateSoundToggleButton();
+            updateNotificationVolumeDisplay();
             startZuluClock();
             updateDistributionInputs();
 
@@ -5411,6 +7766,7 @@ ${getEngagementControlsMarkup()}
                 });
             }
 
+            updateTargetListsDisplay();
             updateRecordedTargetsDisplay();
             showGrid();
         }
