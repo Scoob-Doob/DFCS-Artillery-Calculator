@@ -3003,10 +3003,14 @@
         const DEGREES_TO_MILS = 17.777777778;  // 6400 mils / 360 degrees
         const MILS_TO_DEGREES = 1 / DEGREES_TO_MILS;
         const M777_BALLISTIC_DATA_FILE = "ballistics/M777-ballistic-data.json";
+        const M119_BALLISTIC_DATA_FILE = "ballistics/M119-ballistic-data.json";
+        const D30_BALLISTIC_DATA_FILE = "ballistics/D30-ballistic-data.json";
         const TWO_B14_BALLISTIC_DATA_FILE = "ballistics/2B14-ballistic-data.json";
         const M252_BALLISTIC_DATA_FILE = "ballistics/M252-ballistic-data.json";
         const M777_BALLISTIC_DATA_FILES = {
             "M777": M777_BALLISTIC_DATA_FILE,
+            "M119": M119_BALLISTIC_DATA_FILE,
+            "D30": D30_BALLISTIC_DATA_FILE,
         };
         const MORTAR_BALLISTIC_DATA_FILES = {
             "2B14 Mortar": TWO_B14_BALLISTIC_DATA_FILE,
@@ -3384,17 +3388,9 @@
         }
 
         function applyMeteorologicalCorrection(aimPoint, timeOfFlightSeconds, metData) {
-            const tof = parseFloat(timeOfFlightSeconds);
-            if (!aimPoint || Number.isNaN(tof) || tof <= 0 || !metData || !metData.windSpeed) {
-                return { x: aimPoint.x, y: aimPoint.y };
-            }
-
-            const windVector = getWindFromDirectionVector(metData.windDirection);
-            const driftMeters = metData.windSpeed * tof * 0.12 * getWeatherWindMultiplier(metData.condition);
-
             return {
-                x: aimPoint.x - windVector.x * driftMeters,
-                y: aimPoint.y - windVector.y * driftMeters,
+                x: aimPoint.x,
+                y: aimPoint.y,
             };
         }
 
@@ -4622,7 +4618,10 @@
         }
 
         function getM777WeaponId(weaponSystem = getActiveWeaponSystem()) {
-            return weaponSystem === "M777" ? "M777" : "";
+            if (weaponSystem === "M777") return "M777";
+            if (weaponSystem === "M119") return "M119";
+            if (weaponSystem === "D30") return "D30";
+            return "";
         }
 
         function getMortarBallisticDataFile(weaponSystem = getActiveWeaponSystem()) {
@@ -4665,7 +4664,8 @@
         }
 
         function getChargeOptionsMarkup() {
-            const maxCharge = getM777WeaponId() ? 5 : 4;
+            const howitzerId = getM777WeaponId();
+            const maxCharge = howitzerId === "M777" ? 5 : (getMortarWeaponId() ? 4 : 0);
             const options = [`<option value="">Auto</option>`];
             for (let level = 1; level <= maxCharge; level++) {
                 options.push(`<option value="${level}">Ch ${level}</option>`);
@@ -6592,6 +6592,8 @@ ${getTargetListEngagementControlsMarkup()}
         function getPlanViewRangeRingMaxRange() {
             const weaponSystem = getActiveWeaponSystem();
             if (weaponSystem === "M777") return 5300;
+            if (weaponSystem === "M119") return 4750;
+            if (weaponSystem === "D30") return 4750;
             if (weaponSystem === "M252 Mortar") return 2900;
             if (weaponSystem === "2B14 Mortar") return 2200;
             return 5000;
@@ -7830,20 +7832,81 @@ ${getTargetListEngagementControlsMarkup()}
             return Infinity;
         }
 
+        function calculateGenericHowitzerFiringData(range, ammunitionType, heightDiffM, weaponData, highAngleOnly = false) {
+            const projectileTypes = Array.isArray(weaponData.projectileTypes) ? weaponData.projectileTypes : [];
+            const requestedType = ammunitionType || "HE";
+            const requestedVariant = highAngleOnly ? "high_angle" : "low_angle";
+            const shell = projectileTypes.find(projectile =>
+                projectile.type === requestedType && projectile.variant === requestedVariant
+            ) || projectileTypes.find(projectile =>
+                projectile.variant === requestedVariant
+            ) || projectileTypes.find(projectile =>
+                projectile.type === requestedType
+            ) || projectileTypes[0];
+
+            if (!shell || !Array.isArray(shell.ballisticTable) || range < shell.minRange || range > shell.maxRange) {
+                return {
+                    ammunition: requestedType,
+                    charge: "N/A",
+                    elevation: "N/A",
+                    time: "N/A",
+                    milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
+                    outOfRange: true,
+                };
+            }
+
+            const interpolated = interpolateRangeTable(range, shell.ballisticTable);
+            if (!interpolated) {
+                return {
+                    ammunition: shell.type || requestedType,
+                    charge: "N/A",
+                    elevation: "N/A",
+                    time: "N/A",
+                    milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
+                    outOfRange: true,
+                };
+            }
+
+            const heightHundreds = (Number(heightDiffM) || 0) / 100;
+            const verticalCorrection = (Number(interpolated.dElev) || 0) * heightHundreds;
+            const elevation = highAngleOnly
+                ? interpolated.elevation - verticalCorrection
+                : interpolated.elevation + verticalCorrection;
+            const elevationValid = highAngleOnly
+                ? elevation >= 800 && elevation <= 1515
+                : elevation >= 0 && elevation < 800;
+
+            return {
+                ammunition: shell.type || requestedType,
+                charge: "N/A",
+                elevation: elevationValid ? elevation : "N/A",
+                time: Number.isFinite(Number(interpolated.tof)) ? interpolated.tof : "N/A",
+                probableErrorRange: Infinity,
+                milsPerCircle: weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400,
+                outOfRange: !elevationValid,
+            };
+        }
+
         function calculateM777FiringData(range, ammunitionType, heightDiffM, ballisticData, weaponSystem, forcedChargeLevel = null, highAngleOnly = false) {
             const weaponData = getM777WeaponData(ballisticData, weaponSystem);
             if (!weaponData) {
                 return null;
             }
 
-            const shell = weaponData.shellTypes.find(shellType => shellType.type === ammunitionType)
-                || weaponData.shellTypes[0];
+            if (Array.isArray(weaponData.projectileTypes)) {
+                return calculateGenericHowitzerFiringData(range, ammunitionType, heightDiffM, weaponData, highAngleOnly);
+            }
+
+            const shellTypes = Array.isArray(weaponData.shellTypes) ? weaponData.shellTypes : [];
+            const shell = shellTypes.find(shellType => shellType.type === ammunitionType)
+                || shellTypes[0];
             if (!shell || !Array.isArray(shell.charges)) {
                 return null;
             }
 
-            const heightHundreds = (Number(heightDiffM) || 0) / 100;
-            const lowAngleDElevScale = 1;
+            const heightMeters = Number(heightDiffM) || 0;
+            const heightHundreds = heightMeters / 100;
+            const milsPerCircle = weaponData.milSystem && weaponData.milSystem.milsPerCircle ? weaponData.milSystem.milsPerCircle : 6400;
             const hasLowAngleTable = shell.charges.some(charge => Array.isArray(charge.lowAngleRangeTable));
             if (!highAngleOnly && !hasLowAngleTable) {
                 return {
@@ -7864,15 +7927,21 @@ ${getTargetListEngagementControlsMarkup()}
                     const table = highAngleOnly ? charge.rangeTable : charge.lowAngleRangeTable;
                     const interpolated = interpolateRangeTable(range, table);
                     if (!interpolated) return null;
-                    const dElevScale = highAngleOnly ? 1 : lowAngleDElevScale;
-                    const verticalCorrection = (Number(interpolated.dElev) || 0) * dElevScale * heightHundreds;
+                    const dElev = Number(interpolated.dElev) || 0;
+                    const tableHeightCorrection = dElev * heightHundreds;
+                    const highAngleAltitudeCorrection = highAngleOnly && dElev
+                        ? -heightMeters / dElev
+                        : 0;
+                    const lowAngleAltitudeCorrection = !highAngleOnly && dElev
+                        ? heightMeters / dElev
+                        : 0;
                     const timeCorrection = (Number(interpolated.tofPer100m) || 0) * heightHundreds;
 
                     return {
                         charge,
                         elevation: highAngleOnly
-                            ? interpolated.elevation - verticalCorrection
-                            : interpolated.elevation + verticalCorrection,
+                            ? interpolated.elevation + highAngleAltitudeCorrection
+                            : interpolated.elevation + tableHeightCorrection + lowAngleAltitudeCorrection,
                         time: Number.isFinite(Number(interpolated.tof))
                             ? interpolated.tof - timeCorrection
                             : null,
