@@ -1,6 +1,22 @@
 # Changelog
 
-## v0.1.1
+## v0.1.2 - 09/06/2026
+
+### Added
+
+- Updated M777 Firing tables for 1.7 Update
+- Updated M252 Firing tables for 1.7 Update
+- Added expanded M252 ballistic data for M821 HE, M853A1 illumination, M819 smoke, and M879 practice rounds
+
+### Fixed
+
+- Fixed low angle calculation relating to Delta elevation
+
+### Changed
+
+- Disabled Met Data entry in settings
+
+## v0.1.1 - 26/05/2026
 
 ### Fixed
 
@@ -42,7 +58,8 @@
 - Changed Plan View naming and styling to Map View.
 - Removed estimated PEr display from firing solutions.
 
-## v0.1.0
+
+## v0.1.0 - 19/05/2026
 
 - Initial tracked version.
 
