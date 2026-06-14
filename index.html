@@ -293,7 +293,7 @@
 </head>
 <body>
     <div class="version-panel">
-        <div class="version-number">Version v0.1.2</div>
+        <div class="version-number">Version v0.1.3</div>
         <button type="button" class="changelog-toggle" onclick="toggleChangelog()">Change Log</button>
         <div class="changelog-menu" id="changelogMenu">Loading change log...</div>
     </div>
@@ -329,7 +329,7 @@
             <div class="input-group">
                 <label for="weaponSystem">Selected Weapon System</label>
                 <select id="weaponSystem">
-                    <option value="M777">M777</option>
+                    <option value="M777">M777 (PandaMod)</option>
                     <option value="M119">M119</option>
                     <option value="D30">D30</option>
                     <option value="M252 Mortar">M252 Mortar</option>
@@ -517,6 +517,10 @@
             };
         }
 
+        function formatUnitDisplayName(unitLabel, callsign = getSelectedFdcCallsign()) {
+            return `${callsign || getSelectedFdcCallsign()}${unitLabel || ""}`;
+        }
+
         function readJsonStorage(key) {
             try {
                 return JSON.parse(localStorage.getItem(key) || "null");
@@ -554,7 +558,7 @@
             localStorage.setItem(`firingUnit${fdcCallsign}${label}Presence`, JSON.stringify({
                 unit: label,
                 fdcCallsign,
-                callsign: `${label}${fdcCallsign}`,
+                callsign: formatUnitDisplayName(label, fdcCallsign),
                 joined: true,
                 joinedAt: getPresenceJoinedAt(existingPresence, fdcCallsign, now, forceNewJoin),
                 lastSeenAt: now,
@@ -605,7 +609,7 @@
                 const stale = !unit.presenceActive && unit.hasSavedData;
                 return `
                     <div class="unit-card ${available ? "available" : ""}">
-                        <div class="unit-title">Unit ${unit.label}${unit.fdcCallsign}</div>
+                        <div class="unit-title">Unit ${formatUnitDisplayName(unit.label, unit.fdcCallsign)}</div>
                         <div>Status: ${available ? "Joined" : stale ? "Offline" : "Waiting for DFCS"}</div>
                         <div>Location: ${unit.location || "---"}</div>
                         <div>Altitude: ${unit.altitude || "---"}${unit.altitude ? " m" : ""}</div>
