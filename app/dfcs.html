@@ -226,6 +226,11 @@
             gap: 12px;
         }
 
+        .firing-grid {
+            grid-template-columns: minmax(120px, 0.8fr) minmax(220px, 1.4fr) minmax(120px, 0.8fr);
+            align-items: stretch;
+        }
+
         .summary-grid {
             margin-bottom: 20px;
         }
@@ -235,14 +240,6 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-
-        .utility-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
@@ -294,6 +291,85 @@
             font-weight: bold;
         }
 
+        .ammunition-button {
+            min-width: 120px;
+            background-color: #000;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+            font-weight: bold;
+        }
+
+        .ammunition-panel {
+            display: none;
+            margin: -4px 0 20px;
+            padding: 12px;
+            border: 1px solid #00ff66;
+            background-color: #020402;
+            box-sizing: border-box;
+        }
+
+        .ammunition-panel.visible {
+            display: block;
+        }
+
+        .ammunition-table-wrap {
+            overflow-x: auto;
+        }
+
+        .ammunition-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            background-color: #000;
+        }
+
+        .ammunition-table th,
+        .ammunition-table td {
+            border: 1px solid #00ff66;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .ammunition-table th {
+            color: #9dffbf;
+            background-color: #061406;
+        }
+
+        .ammunition-table input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            background-color: #000;
+            color: #00ff66;
+            border: none;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .ammunition-table input:focus {
+            outline: none;
+            box-shadow: inset 0 0 0 1px rgba(0, 255, 102, 0.75);
+        }
+
+        .ammunition-table input[type="number"]::-webkit-outer-spin-button,
+        .ammunition-table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .ammunition-table input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+
+        .ammunition-panel-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
         .ping-status {
             display: none;
             width: 100%;
@@ -327,8 +403,8 @@
         .movement-button {
             min-width: 150px;
             background-color: #000;
-            color: #00ccff;
-            border: 1px solid #00ccff;
+            color: #00ff66;
+            border: 1px solid #00ff66;
             font-weight: bold;
         }
 
@@ -338,23 +414,48 @@
         }
 
         .movement-button.moving {
-            color: #ffcc00;
-            border-color: #ffcc00;
+            color: #00ff66;
+            border-color: #00ff66;
         }
 
         .moving-location-panel {
             display: none;
-            grid-template-columns: minmax(160px, 1fr) minmax(90px, 120px) auto;
-            gap: 10px;
-            align-items: end;
-            margin-bottom: 20px;
+            gap: 12px;
+            align-items: stretch;
+            margin-bottom: 0;
+            width: 100%;
+            max-width: 100%;
         }
 
         .moving-location-panel.visible {
             display: grid;
+            grid-template-columns: minmax(230px, 1.1fr) minmax(240px, 1fr);
         }
 
-        .moving-location-panel label {
+        .movement-section {
+            border: 1px solid #00ff66;
+            background-color: #000;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        .movement-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #00ff66;
+            margin-bottom: 10px;
+        }
+
+        .movement-section-grid {
+            display: grid;
+            grid-template-columns: minmax(150px, 1fr) minmax(90px, 120px);
+            gap: 10px;
+            align-items: end;
+        }
+
+        .movement-section label {
             display: block;
             font-size: 12px;
             letter-spacing: 1px;
@@ -362,7 +463,7 @@
             opacity: 0.75;
         }
 
-        .moving-location-panel input {
+        .movement-section input {
             width: 100%;
             box-sizing: border-box;
             padding: 10px;
@@ -374,57 +475,97 @@
 
         .moving-location-panel button {
             height: 38px;
+            min-width: 70px;
             font-weight: bold;
         }
 
-        .crest-button {
-            min-width: 130px;
-            background-color: #000;
-            color: #ffcc00;
-            border: 1px solid #ffcc00;
-            font-weight: bold;
-        }
-
-        .crest-button.active {
-            background-color: #332700;
-        }
-
-        .crest-panel {
-            display: none;
-            grid-template-columns: minmax(160px, 1fr) auto auto;
-            gap: 10px;
-            align-items: end;
-            margin-bottom: 20px;
-            border: 1px solid #ffcc00;
-            padding: 10px;
-            background-color: #100d00;
-        }
-
-        .crest-panel.visible {
+        .arc-of-fire-field {
             display: grid;
-        }
-
-        .crest-panel label {
-            display: block;
-            font-size: 12px;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
-            color: #ffdf66;
-        }
-
-        .crest-panel input {
-            width: 100%;
+            grid-template-columns: minmax(105px, 120px) minmax(58px, 1fr) minmax(58px, 1fr);
+            gap: 8px;
+            align-items: end;
             box-sizing: border-box;
-            padding: 10px;
-            background-color: #000;
-            color: #ffcc00;
-            border: 1px solid #ffcc00;
-            font-size: 14px;
+            width: 100%;
         }
 
-        .crest-panel button {
-            height: 38px;
-            font-weight: bold;
+        .arc-of-fire-readout {
+            min-width: 0;
+        }
+
+        .arc-of-fire-readout-label {
+            font-size: 9px;
+            letter-spacing: 1px;
+            opacity: 0.65;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .arc-of-fire-readout-value {
+            border: 1px solid #00ff66;
+            color: #00ff66;
+            background-color: #020402;
+            padding: 10px 4px;
+            min-height: 38px;
+            box-sizing: border-box;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .arc-of-fire-field input {
+            max-width: 120px;
+        }
+
+        .crest-minimum-field {
+            display: grid;
+            grid-template-columns: minmax(130px, 160px);
+            align-items: end;
+        }
+
+        .crest-minimum-field input {
+            max-width: 160px;
+        }
+
+        #movingLocationApplyButton {
+            justify-self: end;
+            align-self: end;
+        }
+
+        .movement-location-section {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .movement-arc-section {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .movement-crest-section {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .movement-apply-row {
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .movement-details-panel {
+            display: none;
+            margin-top: -4px;
+            margin-bottom: 20px;
+            padding: 12px;
+            border: 1px solid #00ff66;
+            background-color: #020402;
+            box-sizing: border-box;
+        }
+
+        .movement-details-panel.visible {
+            display: block;
+            max-width: 100%;
         }
 
         .command-status {
@@ -505,6 +646,21 @@
             min-height: 58px;
         }
 
+        .data-item.ammunition-solution {
+            min-height: 76px;
+        }
+
+        .firing-grid .data-item:nth-child(2),
+        .firing-grid .data-item:nth-child(5) {
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        .data-item.placeholder {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
         .data-label {
             font-size: 12px;
             opacity: 0.7;
@@ -518,6 +674,50 @@
             overflow-wrap: anywhere;
         }
 
+        .ammunition-lines {
+            display: grid;
+            gap: 4px;
+        }
+
+        .ammunition-line {
+            display: grid;
+            grid-template-columns: 44px minmax(120px, 1fr) minmax(38px, max-content);
+            column-gap: 12px;
+            align-items: baseline;
+            white-space: nowrap;
+            padding-right: 6px;
+        }
+
+        .ammunition-line-prefix,
+        .method-control-prefix {
+            opacity: 0.95;
+        }
+
+        .ammunition-line-type,
+        .method-control-main {
+            text-align: center;
+        }
+
+        .ammunition-line-charge {
+            text-align: right;
+        }
+
+        .method-control-line {
+            display: grid;
+            grid-template-columns: 44px minmax(120px, 1fr) 44px;
+            column-gap: 12px;
+            align-items: baseline;
+            white-space: nowrap;
+        }
+
+        .method-control-countdown {
+            grid-column: 1 / -1;
+            margin-top: 6px;
+            text-align: center;
+            font-weight: bold;
+            color: #9dffbf;
+        }
+
         .empty-state {
             padding: 24px 0 0;
             opacity: 0.8;
@@ -525,22 +725,209 @@
         }
 
         @media (max-width: 560px) {
+            body {
+                padding: 10px;
+            }
+
+            .shell {
+                max-width: none;
+            }
+
             .top-bar {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 10px;
+                margin-bottom: 12px;
+                padding: 28px 0 12px;
+            }
+
+            .dfcs-title {
+                font-size: 16px;
+            }
+
+            .left-nav-actions {
+                flex: none;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .nav-actions {
+                margin-left: 0;
+            }
+
+            .nav-actions button,
+            .left-nav-actions button {
+                width: 100%;
+                min-height: 40px;
+                padding: 9px 10px;
             }
 
             .assigned-name {
                 width: auto;
+                min-width: 0;
+                padding: 8px 10px;
+            }
+
+            .assigned-name-value {
+                font-size: 20px;
+                letter-spacing: 1px;
+            }
+
+            .zulu-time-display {
+                flex: none;
+                width: auto;
+                min-width: 0;
+                margin: 0;
+            }
+
+            .panel {
+                padding: 12px;
+            }
+
+            .summary-grid,
+            .firing-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .data-item.wide {
+                grid-column: span 1;
+            }
+
+            .data-item.placeholder {
+                display: none;
+            }
+
+            .summary-grid {
+                margin-bottom: 12px;
+            }
+
+            .data-item {
+                min-height: 0;
+                padding: 10px;
+            }
+
+            .data-label {
+                font-size: 10px;
+                margin-bottom: 4px;
+            }
+
+            .data-value {
+                font-size: 16px;
+            }
+
+            .ammunition-line {
+                grid-template-columns: 40px minmax(96px, 1fr) minmax(34px, max-content);
+                column-gap: 8px;
+                padding-right: 4px;
+            }
+
+            .method-control-line {
+                grid-template-columns: 40px minmax(96px, 1fr) 40px;
+                column-gap: 8px;
+            }
+
+            .command-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            .command-row button {
+                width: 100%;
+                min-width: 0;
+                min-height: 42px;
+                padding: 9px 8px;
+                font-size: 12px;
+            }
+
+            .movement-button,
+            .command-status,
+            .sound-status,
+            .ping-status {
+                grid-column: 1 / -1;
+            }
+
+            .command-status,
+            .sound-status,
+            .ping-status {
+                font-size: 10px;
+            }
+
+            .ammunition-panel,
+            .movement-details-panel {
+                padding: 8px;
+                margin-bottom: 12px;
+            }
+
+            .ammunition-table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .ammunition-table {
+                min-width: 620px;
+            }
+
+            .ammunition-table th,
+            .ammunition-table td {
+                padding: 6px 4px;
+                font-size: 10px;
+            }
+
+            .ammunition-table input {
+                padding: 7px 3px;
+                font-size: 12px;
             }
 
             .fire-warning {
                 align-items: stretch;
                 flex-direction: column;
+                padding: 12px;
+            }
+
+            .fire-warning-text,
+            .check-firing-warning .fire-warning-text {
+                font-size: 28px;
             }
 
             .moving-location-panel.visible {
                 grid-template-columns: 1fr;
+                width: 100%;
+                gap: 8px;
+            }
+
+            .movement-location-section,
+            .movement-arc-section,
+            .movement-crest-section,
+            .movement-apply-row {
+                grid-column: 1;
+                grid-row: auto;
+            }
+
+            .movement-section-grid,
+            .arc-of-fire-field {
+                grid-template-columns: 1fr;
+                width: 100%;
+            }
+
+            .movement-section {
+                padding: 10px;
+            }
+
+            .movement-section input,
+            .arc-of-fire-field input,
+            .crest-minimum-field input {
+                max-width: none;
+            }
+
+            .crest-minimum-field {
+                grid-template-columns: 1fr;
+            }
+
+            #movingLocationApplyButton {
+                width: 100%;
             }
         }
     </style>
@@ -613,35 +1000,64 @@
                 <button class="ready-button" id="readyButton" onclick="markReady()" disabled>READY</button>
                 <button class="rounds-complete-button" id="roundsCompleteButton" onclick="sendRoundsComplete()" disabled>ROUNDS COMPLETE</button>
                 <button class="deny-button" id="denyMissionButton" onclick="denyMission()" disabled>DENY</button>
+                <button class="ping-button" id="pingButton" onclick="sendPing()">PING</button>
+                <button class="ammunition-button" id="ammunitionButton" type="button" onclick="toggleAmmunitionPanel()">AMMUNITION</button>
                 <div class="command-status" id="commandStatus">Waiting for FDC firing data.</div>
                 <div class="sound-status" id="soundStatus"></div>
                 <div class="ping-status" id="pingStatus">Ping not sent.</div>
             </div>
 
-            <div class="utility-row">
-                <button class="ping-button" id="pingButton" onclick="sendPing()">PING</button>
-                <button class="crest-button" id="crestButton" onclick="toggleCrestPanel()">CREST DATA</button>
+            <div class="ammunition-panel" id="ammunitionPanel">
+                <div class="movement-section-title">Ammunition</div>
+                <div class="ammunition-table-wrap" id="ammunitionTableWrap"></div>
+                <div class="ammunition-panel-actions">
+                    <button type="button" onclick="saveAmmunitionInventory()">APPLY</button>
+                </div>
             </div>
 
-            <div class="moving-location-panel" id="movingLocationPanel">
-                <div>
-                    <label for="movingLocationInput">Moving Location</label>
-                    <input id="movingLocationInput" type="text" maxlength="10" placeholder="10 figure grid">
+            <div class="movement-details-panel" id="movementDetailsPanel">
+                <div class="moving-location-panel" id="movingLocationPanel">
+                    <div class="movement-section movement-location-section">
+                        <div class="movement-section-title">Location Update</div>
+                        <div class="movement-section-grid">
+                            <div id="movingLocationField">
+                                <label for="movingLocationInput">Grid</label>
+                                <input id="movingLocationInput" type="text" maxlength="10" placeholder="10 figure grid">
+                            </div>
+                            <div id="movingAltitudeField">
+                                <label for="movingAltitudeInput">Altitude</label>
+                                <input id="movingAltitudeInput" type="number" min="0" max="999" placeholder="m">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="movement-section movement-arc-section" id="movingAzimuthOfLayField">
+                        <div class="movement-section-title">Arc of Fire</div>
+                        <div class="arc-of-fire-field">
+                            <div>
+                                <label for="movingAzimuthOfLayInput">Azimuth of Lay</label>
+                                <input id="movingAzimuthOfLayInput" type="number" min="0" max="6400" placeholder="mils">
+                            </div>
+                            <div class="arc-of-fire-readout">
+                                <div class="arc-of-fire-readout-label">Left</div>
+                                <div class="arc-of-fire-readout-value" id="arcLeftTraverseDisplay">---</div>
+                            </div>
+                            <div class="arc-of-fire-readout">
+                                <div class="arc-of-fire-readout-label">Right</div>
+                                <div class="arc-of-fire-readout-value" id="arcRightTraverseDisplay">---</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="movement-section movement-crest-section">
+                        <div class="movement-section-title">Crest Data</div>
+                        <div class="crest-minimum-field">
+                            <label for="crestMinimumElevationInput">Minimum Elevation (mils)</label>
+                            <input id="crestMinimumElevationInput" type="number" min="0" max="1600" placeholder="No crest limit">
+                        </div>
+                    </div>
+                    <div class="movement-apply-row">
+                        <button id="movingLocationApplyButton" type="button" onclick="applyMovingLocation()">APPLY</button>
+                    </div>
                 </div>
-                <div>
-                    <label for="movingAltitudeInput">Altitude</label>
-                    <input id="movingAltitudeInput" type="number" min="0" max="999" placeholder="m">
-                </div>
-                <button type="button" onclick="applyMovingLocation()">APPLY</button>
-            </div>
-
-            <div class="crest-panel" id="crestPanel">
-                <div>
-                    <label for="crestMinimumElevationInput">Minimum Elevation (mils)</label>
-                    <input id="crestMinimumElevationInput" type="number" min="0" max="1600" placeholder="No crest limit">
-                </div>
-                <button type="button" onclick="applyCrestMinimumElevation()">APPLY</button>
-                <button type="button" onclick="clearCrestMinimumElevation()">CLEAR</button>
             </div>
 
             <div class="fire-warning" id="fireWarning">
@@ -689,6 +1105,16 @@
             return NOTIFICATION_SOUND_SOURCES[notificationSoundSourceIndex] || NOTIFICATION_SOUND_FILE;
         }
 
+        function getNotificationPlaybackRate() {
+            return activeNotificationSounds.has("dfcs-end-mission") ? 0.5 : 1;
+        }
+
+        function applyNotificationPlaybackRate() {
+            if (notificationAudio) {
+                notificationAudio.playbackRate = getNotificationPlaybackRate();
+            }
+        }
+
         function resetNotificationAudio() {
             if (!notificationAudio) return;
             notificationAudio.pause();
@@ -704,6 +1130,7 @@
                 notificationAudio.loop = true;
                 notificationAudio.preload = "auto";
                 notificationAudio.volume = getNotificationVolume();
+                notificationAudio.playbackRate = getNotificationPlaybackRate();
                 notificationAudio.addEventListener("error", () => {
                     showSoundStatus(`Sound file failed to load: ${source}`);
                 });
@@ -777,6 +1204,7 @@
 
         function updateNotificationSound() {
             const audio = getNotificationAudio();
+            applyNotificationPlaybackRate();
             if (!notificationSoundEnabled) {
                 audio.pause();
                 audio.currentTime = 0;
@@ -867,6 +1295,61 @@
             return localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
         }
 
+        function formatUnitDisplayName(unit = getAssignedUnit(), callsign = getAssignedFdcCallsign()) {
+            return `${callsign || getAssignedFdcCallsign()}${unit || ""}`;
+        }
+
+        function getActiveWeaponSystem() {
+            const fdcCallsign = getAssignedFdcCallsign();
+            return localStorage.getItem(`fdc${fdcCallsign}WeaponSystem`) || localStorage.getItem("weaponSystem") || "M777";
+        }
+
+        function isM777WeaponSelected() {
+            return String(getActiveWeaponSystem() || "").includes("M777");
+        }
+
+        function getAmmunitionTypesForWeapon(weaponSystem = getActiveWeaponSystem()) {
+            if (String(weaponSystem || "").includes("M777")) return ["HE", "WP", "Illum", "GPS Guided"];
+            if (weaponSystem === "M119" || weaponSystem === "D30") return ["HE", "WP", "Illum", "GPS Guided"];
+            if (weaponSystem === "M252 Mortar" || weaponSystem === "2B14 Mortar") return ["HE", "Smoke", "Illum"];
+            return ["HE"];
+        }
+
+        function getAmmunitionTypeLabel(type, weaponSystem = getActiveWeaponSystem()) {
+            if (String(weaponSystem || "").includes("M777")) {
+                const labels = {
+                    HE: "HE M107",
+                    WP: "WP M825A1",
+                    Illum: "ILLUM M485A2",
+                    "GPS Guided": "GPS Excal M982",
+                };
+                return labels[type] || type;
+            }
+            return type;
+        }
+
+        function getAmmunitionTypeHeaderHtml(type, weaponSystem = getActiveWeaponSystem()) {
+            return getAmmunitionTypeLabel(type, weaponSystem).replace("GPS Excal M982", "GPS Excal<br>M982");
+        }
+
+        function normalizeAmmunitionTypeForInventory(ammunitionType) {
+            return ammunitionType === "HE PD" || ammunitionType === "HE VT" ? "HE" : ammunitionType;
+        }
+
+        function getChargeLevelsForWeapon(weaponSystem = getActiveWeaponSystem()) {
+            if (weaponSystem === "M777") return [1, 2, 3, 4, 5];
+            if (weaponSystem === "M119" || weaponSystem === "D30") return [1, 2, 3, 4, 5];
+            if (weaponSystem === "M252 Mortar" || weaponSystem === "2B14 Mortar") return [1, 2, 3, 4];
+            return [];
+        }
+
+        function getChargeLevelLabel(level, weaponSystem = getActiveWeaponSystem()) {
+            if (weaponSystem === "M777") {
+                return Number(level) <= 2 ? `Ch ${level} M231` : `Ch ${level} M232A1`;
+            }
+            return `Ch ${level}`;
+        }
+
         function getUnitStoragePrefix(unit = getAssignedUnit()) {
             return `firingUnit${getAssignedFdcCallsign()}${unit}`;
         }
@@ -874,7 +1357,8 @@
         let lastPresenceWriteMs = 0;
         let movingLocationInputDirty = false;
         let movingAltitudeInputDirty = false;
-        let crestPanelOpen = false;
+        let movingAzimuthOfLayInputDirty = false;
+        let activeDfcsDropdown = "";
 
         function writeDfcsPresence(force = false) {
             if (!force && Date.now() - lastPresenceWriteMs < 4000) {
@@ -897,7 +1381,7 @@
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Presence`, JSON.stringify({
                 unit: assignedUnit,
                 fdcCallsign,
-                callsign: `${assignedUnit}${fdcCallsign}`,
+                callsign: formatUnitDisplayName(assignedUnit, fdcCallsign),
                 joined: true,
                 joinedAt,
                 lastSeenAt: now,
@@ -923,12 +1407,42 @@
             return String(Math.max(0, Math.min(999, altitude)));
         }
 
+        function normalizeAzimuthOfLayInput(value) {
+            const azimuth = parseInt(String(value || "").replace(/\D/g, ""), 10);
+            if (Number.isNaN(azimuth)) return "";
+            return String(Math.max(0, Math.min(6400, azimuth)));
+        }
+
+        function normalizeMils(value) {
+            const mils = Number(value);
+            if (!Number.isFinite(mils)) return null;
+            return ((Math.round(mils) % 6400) + 6400) % 6400;
+        }
+
+        function updateArcOfFireDisplay(value) {
+            const leftDisplay = document.getElementById("arcLeftTraverseDisplay");
+            const rightDisplay = document.getElementById("arcRightTraverseDisplay");
+            const azimuth = normalizeMils(value);
+            if (!leftDisplay || !rightDisplay) return;
+            if (azimuth === null) {
+                leftDisplay.innerText = "---";
+                rightDisplay.innerText = "---";
+                return;
+            }
+            leftDisplay.innerText = String(normalizeMils(azimuth - 267)).padStart(4, "0");
+            rightDisplay.innerText = String(normalizeMils(azimuth + 267)).padStart(4, "0");
+        }
+
         function getCurrentUnitLocation(unit = getAssignedUnit()) {
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}Location`) || "";
         }
 
         function getCurrentUnitAltitude(unit = getAssignedUnit()) {
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}Altitude`) || "";
+        }
+
+        function getCurrentUnitAzimuthOfLay(unit = getAssignedUnit()) {
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}AzimuthOfLay`) || "";
         }
 
         function getPendingMovingLocation(unit = getAssignedUnit()) {
@@ -939,13 +1453,183 @@
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingAltitude`) || "";
         }
 
+        function getPendingMovingAzimuthOfLay(unit = getAssignedUnit()) {
+            return localStorage.getItem(`${getUnitStoragePrefix(unit)}PendingAzimuthOfLay`) || "";
+        }
+
         function getCrestMinimumElevation(unit = getAssignedUnit()) {
             return localStorage.getItem(`${getUnitStoragePrefix(unit)}CrestMinimumElevation`) || "";
         }
 
-        function toggleCrestPanel() {
-            crestPanelOpen = !crestPanelOpen;
+        function getAmmunitionInventory(unit = getAssignedUnit()) {
+            try {
+                return JSON.parse(localStorage.getItem(`${getUnitStoragePrefix(unit)}AmmunitionInventory`) || "{}") || {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function normalizeInventoryNumber(value) {
+            const number = parseInt(String(value || "").replace(/\D/g, ""), 10);
+            return Number.isNaN(number) ? "" : String(Math.max(0, Math.min(9999, number)));
+        }
+
+        function toggleAmmunitionPanel() {
+            const panel = document.getElementById("ammunitionPanel");
+            if (!panel) return;
+            activeDfcsDropdown = activeDfcsDropdown === "ammunition" ? "" : "ammunition";
             renderDfcs();
+            if (activeDfcsDropdown === "ammunition") {
+                renderAmmunitionInventory();
+            }
+        }
+
+        function renderAmmunitionInventory() {
+            const wrap = document.getElementById("ammunitionTableWrap");
+            if (!wrap) return;
+
+            const weaponSystem = getActiveWeaponSystem();
+            const ammunitionTypes = getAmmunitionTypesForWeapon(weaponSystem);
+            const chargeLevels = getChargeLevelsForWeapon(weaponSystem);
+            const inventoryStore = getAmmunitionInventory();
+            const inventory = inventoryStore.munitions || inventoryStore;
+            const sharedCharges = inventoryStore.charges || {};
+            const legacyChargeTotals = chargeLevels.reduce((totals, level) => {
+                totals[level] = Object.values(inventory || {}).reduce((sum, item) => {
+                    const value = Number(item && item.charges && item.charges[level]);
+                    return sum + (Number.isFinite(value) ? value : 0);
+                }, 0);
+                return totals;
+            }, {});
+            const dataColumnCount = ammunitionTypes.length + chargeLevels.length;
+            const dataColumnWidth = dataColumnCount > 0 ? `${100 / dataColumnCount}%` : "auto";
+            wrap.innerHTML = `
+                <table class="ammunition-table">
+                    <colgroup>
+                        <col style="width: 42px;">
+                        ${Array.from({ length: dataColumnCount }, () => `<col style="width: ${dataColumnWidth};">`).join("")}
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            ${ammunitionTypes.map(type => `<th>${getAmmunitionTypeHeaderHtml(type, weaponSystem)}</th>`).join("")}
+                            ${chargeLevels.map(level => `<th>${getChargeLevelLabel(level, weaponSystem)}</th>`).join("")}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Qty</td>
+                            ${ammunitionTypes.map(type => {
+                                const item = inventory[type] || {};
+                                return `<td><input class="ammunition-projectile-input" data-ammunition-type="${type}" type="number" min="0" max="9999" value="${normalizeInventoryNumber(item.projectiles)}" oninput="saveAmmunitionInventory()"></td>`;
+                            }).join("")}
+                            ${chargeLevels.map(level => {
+                                const value = sharedCharges[level] !== undefined ? sharedCharges[level] : legacyChargeTotals[level];
+                                return `<td><input class="ammunition-charge-input" data-charge-level="${level}" type="number" min="0" max="9999" value="${normalizeInventoryNumber(value)}" oninput="saveAmmunitionInventory()"></td>`;
+                            }).join("")}
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function saveAmmunitionInventory() {
+            const projectileInputs = Array.from(document.querySelectorAll("#ammunitionTableWrap .ammunition-projectile-input"));
+            const chargeInputs = Array.from(document.querySelectorAll("#ammunitionTableWrap .ammunition-charge-input"));
+            if (!projectileInputs.length && !chargeInputs.length) return;
+
+            const munitions = {};
+            projectileInputs.forEach(input => {
+                const type = input.dataset.ammunitionType;
+                const projectiles = normalizeInventoryNumber(input.value);
+                input.value = projectiles;
+                munitions[type] = {
+                    projectiles,
+                };
+            });
+            const charges = {};
+            chargeInputs.forEach(input => {
+                const value = normalizeInventoryNumber(input.value);
+                input.value = value;
+                if (value) {
+                    charges[input.dataset.chargeLevel] = value;
+                }
+            });
+
+            localStorage.setItem(`${getUnitStoragePrefix()}AmmunitionInventory`, JSON.stringify({
+                weaponSystem: getActiveWeaponSystem(),
+                updatedAt: new Date().toISOString(),
+                munitions,
+                charges,
+            }));
+        }
+
+        function getAmmunitionDeductionKey(payload, unit = getAssignedUnit()) {
+            return `${getUnitStoragePrefix(unit)}AmmunitionDeducted${getMissionInstanceId(payload)}`;
+        }
+
+        function getLegacyChargeTotals(munitions = {}) {
+            return Object.values(munitions || {}).reduce((totals, item) => {
+                Object.entries((item && item.charges) || {}).forEach(([level, value]) => {
+                    const number = Number(value);
+                    totals[level] = (totals[level] || 0) + (Number.isFinite(number) ? number : 0);
+                });
+                return totals;
+            }, {});
+        }
+
+        function subtractInventoryNumber(value, amount) {
+            const current = parseInt(String(value || "0").replace(/\D/g, ""), 10);
+            const decrement = Math.max(0, Number(amount) || 0);
+            return String(Math.max(0, (Number.isFinite(current) ? current : 0) - decrement));
+        }
+
+        function deductAmmunitionForMission(payload, solution) {
+            const assignedUnit = getAssignedUnit();
+            if (!payload || !solution) return null;
+            const deductionKey = getAmmunitionDeductionKey(payload, assignedUnit);
+            const existingDeduction = readJsonStorage(deductionKey);
+            if (existingDeduction && existingDeduction.deductedAt) {
+                return existingDeduction.inventory || getAmmunitionInventory(assignedUnit);
+            }
+
+            const ammunitionType = normalizeAmmunitionTypeForInventory(solution.ammunition || "");
+            const chargeLevel = parseInt(String(solution.charge || "").replace(/\D/g, ""), 10);
+            const requiredRounds = Math.max(1, Number(solution.requiredRounds) || 1);
+            const inventoryStore = getAmmunitionInventory(assignedUnit);
+            const munitions = { ...((inventoryStore && inventoryStore.munitions) || inventoryStore || {}) };
+            const charges = {
+                ...getLegacyChargeTotals(munitions),
+                ...((inventoryStore && inventoryStore.charges) || {}),
+            };
+
+            if (ammunitionType) {
+                const item = { ...(munitions[ammunitionType] || {}) };
+                item.projectiles = subtractInventoryNumber(item.projectiles, requiredRounds);
+                delete item.charges;
+                munitions[ammunitionType] = item;
+            }
+            if (Number.isFinite(chargeLevel)) {
+                charges[String(chargeLevel)] = subtractInventoryNumber(charges[String(chargeLevel)], requiredRounds);
+            }
+
+            const updatedInventory = {
+                weaponSystem: inventoryStore.weaponSystem || getActiveWeaponSystem(),
+                updatedAt: new Date().toISOString(),
+                munitions,
+                charges,
+            };
+            localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}AmmunitionInventory`, JSON.stringify(updatedInventory));
+            localStorage.setItem(deductionKey, JSON.stringify({
+                targetNumber: payload.targetNumber,
+                missionInstanceId: getMissionInstanceId(payload),
+                ammunition: ammunitionType,
+                charge: Number.isFinite(chargeLevel) ? chargeLevel : "",
+                rounds: requiredRounds,
+                deductedAt: updatedInventory.updatedAt,
+                inventory: updatedInventory,
+            }));
+            return updatedInventory;
         }
 
         function applyCrestMinimumElevation() {
@@ -981,6 +1665,7 @@
         function setupMovingLocationInputs() {
             const locationInput = document.getElementById("movingLocationInput");
             const altitudeInput = document.getElementById("movingAltitudeInput");
+            const azimuthOfLayInput = document.getElementById("movingAzimuthOfLayInput");
             if (locationInput) {
                 locationInput.addEventListener("input", () => {
                     movingLocationInputDirty = true;
@@ -991,14 +1676,54 @@
                     movingAltitudeInputDirty = true;
                 });
             }
+            if (azimuthOfLayInput) {
+                azimuthOfLayInput.addEventListener("input", () => {
+                    movingAzimuthOfLayInputDirty = true;
+                    updateArcOfFireDisplay(azimuthOfLayInput.value);
+                });
+            }
+        }
+
+        function applyMovingAzimuthOfLay() {
+            const assignedUnit = getAssignedUnit();
+            const azimuthOfLayInput = document.getElementById("movingAzimuthOfLayInput");
+            if (!isM777WeaponSelected()) {
+                localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingAzimuthOfLay`);
+                if (azimuthOfLayInput) azimuthOfLayInput.value = "";
+                movingAzimuthOfLayInputDirty = false;
+                renderDfcs();
+                return;
+            }
+            const azimuthOfLay = normalizeAzimuthOfLayInput(azimuthOfLayInput && azimuthOfLayInput.value);
+            if (!azimuthOfLay) {
+                localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingAzimuthOfLay`);
+                if (azimuthOfLayInput) azimuthOfLayInput.value = "";
+                movingAzimuthOfLayInputDirty = false;
+                renderDfcs();
+                return;
+            }
+
+            localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingAzimuthOfLay`, azimuthOfLay);
+            if (azimuthOfLayInput) azimuthOfLayInput.value = azimuthOfLay;
+            movingAzimuthOfLayInputDirty = false;
+            renderDfcs();
         }
 
         function applyMovingLocation() {
             const assignedUnit = getAssignedUnit();
             const locationInput = document.getElementById("movingLocationInput");
             const altitudeInput = document.getElementById("movingAltitudeInput");
+            const azimuthOfLayInput = document.getElementById("movingAzimuthOfLayInput");
+            const crestMinimumElevationInput = document.getElementById("crestMinimumElevationInput");
             const grid = normalizeGridInput(locationInput && locationInput.value);
             const altitude = normalizeAltitudeInput(altitudeInput && altitudeInput.value);
+            const azimuthOfLay = isM777WeaponSelected()
+                ? normalizeAzimuthOfLayInput(azimuthOfLayInput && azimuthOfLayInput.value)
+                : "";
+            const crestMinimumElevationValue = String(crestMinimumElevationInput && crestMinimumElevationInput.value || "").replace(/\D/g, "");
+            const crestMinimumElevation = crestMinimumElevationValue
+                ? String(Math.max(0, Math.min(1600, parseInt(crestMinimumElevationValue, 10))))
+                : "";
             if (grid.length !== 10) {
                 alert("Enter a 10 figure grid.");
                 return;
@@ -1010,10 +1735,23 @@
 
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`, grid);
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingAltitude`, altitude);
+            if (azimuthOfLay) {
+                localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}PendingAzimuthOfLay`, azimuthOfLay);
+            } else {
+                localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingAzimuthOfLay`);
+            }
+            if (crestMinimumElevation) {
+                localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}CrestMinimumElevation`, crestMinimumElevation);
+            } else {
+                localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}CrestMinimumElevation`);
+            }
             if (locationInput) locationInput.value = grid;
             if (altitudeInput) altitudeInput.value = altitude;
+            if (azimuthOfLayInput) azimuthOfLayInput.value = azimuthOfLay;
+            if (crestMinimumElevationInput) crestMinimumElevationInput.value = crestMinimumElevation;
             movingLocationInputDirty = false;
             movingAltitudeInputDirty = false;
+            movingAzimuthOfLayInputDirty = false;
             renderDfcs();
         }
 
@@ -1021,19 +1759,27 @@
             const assignedUnit = getAssignedUnit();
             const pendingGrid = getPendingMovingLocation(assignedUnit);
             const pendingAltitude = getPendingMovingAltitude(assignedUnit);
+            const pendingAzimuthOfLay = isM777WeaponSelected() ? getPendingMovingAzimuthOfLay(assignedUnit) : "";
             if (!pendingGrid) return;
 
             localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Location`, pendingGrid);
             if (pendingAltitude) {
                 localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}Altitude`, pendingAltitude);
             }
+            if (pendingAzimuthOfLay) {
+                localStorage.setItem(`${getUnitStoragePrefix(assignedUnit)}AzimuthOfLay`, pendingAzimuthOfLay);
+            } else if (!isM777WeaponSelected()) {
+                localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}AzimuthOfLay`);
+            }
             localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingLocation`);
             localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingAltitude`);
+            localStorage.removeItem(`${getUnitStoragePrefix(assignedUnit)}PendingAzimuthOfLay`);
             localStorage.setItem("firingUnitLocationUpdate", JSON.stringify({
                 unit: assignedUnit,
                 fdcCallsign: getAssignedFdcCallsign(),
                 location: pendingGrid,
                 altitude: pendingAltitude,
+                azimuthOfLay: pendingAzimuthOfLay,
                 updatedAt: new Date().toISOString(),
                 updateId: `${assignedUnit}-${Date.now()}`,
             }));
@@ -1045,12 +1791,17 @@
             if (nextStatus === "moving") {
                 movingLocationInputDirty = false;
                 movingAltitudeInputDirty = false;
+                movingAzimuthOfLayInputDirty = false;
             }
             if (currentStatus === "moving" && nextStatus === "stationary") {
                 const locationInput = document.getElementById("movingLocationInput");
                 const altitudeInput = document.getElementById("movingAltitudeInput");
+                const azimuthOfLayInput = document.getElementById("movingAzimuthOfLayInput");
                 const grid = normalizeGridInput((locationInput && locationInput.value) || getPendingMovingLocation());
                 const altitude = normalizeAltitudeInput((altitudeInput && altitudeInput.value) || getPendingMovingAltitude() || getCurrentUnitAltitude());
+                const azimuthOfLay = isM777WeaponSelected()
+                    ? normalizeAzimuthOfLayInput((azimuthOfLayInput && azimuthOfLayInput.value) || getPendingMovingAzimuthOfLay() || getCurrentUnitAzimuthOfLay())
+                    : "";
                 if (grid.length !== 10) {
                     alert("Enter and apply a 10 figure grid before setting stationary.");
                     return;
@@ -1061,12 +1812,19 @@
                 }
                 localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingLocation`, grid);
                 localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingAltitude`, altitude);
+                if (azimuthOfLay) {
+                    localStorage.setItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingAzimuthOfLay`, azimuthOfLay);
+                } else {
+                    localStorage.removeItem(`${getUnitStoragePrefix(getAssignedUnit())}PendingAzimuthOfLay`);
+                }
                 sendStationaryLocationUpdate();
                 movingLocationInputDirty = false;
                 movingAltitudeInputDirty = false;
+                movingAzimuthOfLayInputDirty = false;
             }
 
             setUnitOperationalStatus(nextStatus);
+            activeDfcsDropdown = nextStatus === "moving" ? "movement" : "";
 
             const payload = getLatestFiringPayload();
             const currentMissionStatus = getMissionUnitStatus(payload);
@@ -1081,7 +1839,7 @@
             const unit = getAssignedUnit();
             const savedCallsign = getAssignedFdcCallsign();
             const fdcCallsign = /^[1-4]$/.test(savedCallsign) ? savedCallsign : "";
-            return `${unit}${fdcCallsign || "-"}`;
+            return `${fdcCallsign || "-"}${unit}`;
         }
 
         function getTargetNotificationAckKey() {
@@ -1089,9 +1847,10 @@
         }
 
         function getTargetNotificationId(payload) {
-            return payload && payload.targetNumber
-                ? `${payload.targetNumber}|${payload.acceptedAt || payload.updatedAt || ""}`
-                : "";
+            if (!payload || !payload.targetNumber) return "";
+            const assignedUnit = getAssignedUnit();
+            const unitResentAt = payload.resentUnits && payload.resentUnits[assignedUnit];
+            return `${payload.targetNumber}|${unitResentAt || payload.acceptedAt || payload.updatedAt || ""}`;
         }
 
         function getMissionInstanceId(payload) {
@@ -1247,6 +2006,11 @@
             return now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
         }
 
+        function normalizeDaySeconds(totalSeconds) {
+            const secondsInDay = 24 * 60 * 60;
+            return ((Math.floor(totalSeconds) % secondsInDay) + secondsInDay) % secondsInDay;
+        }
+
         function getActiveZuluSeconds() {
             const markedZuluTime = localStorage.getItem("zuluTime");
             if (markedZuluTime) {
@@ -1259,7 +2023,7 @@
                     return markedSeconds;
                 }
 
-                return markedSeconds + Math.floor((Date.now() - markedAt) / 1000);
+                return normalizeDaySeconds(markedSeconds + Math.floor((Date.now() - markedAt) / 1000));
             }
 
             return getSystemZuluSeconds();
@@ -1267,8 +2031,12 @@
 
         function formatCountdown(totalSeconds) {
             const safeSeconds = Math.max(0, Math.floor(totalSeconds));
-            const minutes = Math.floor(safeSeconds / 60);
+            const hours = Math.floor(safeSeconds / 3600);
+            const minutes = Math.floor((safeSeconds % 3600) / 60);
             const seconds = safeSeconds % 60;
+            if (hours > 0) {
+                return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+            }
             return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
         }
 
@@ -1283,20 +2051,161 @@
                 return solution && solution.countdown ? solution.countdown : "";
             }
 
-            let secondsUntilImpact = targetZuluSeconds - getActiveZuluSeconds();
+            let secondsUntilImpact = targetZuluSeconds - normalizeDaySeconds(getActiveZuluSeconds());
             if (secondsUntilImpact < 0) {
-                return "FIRE NOW";
+                secondsUntilImpact += 24 * 60 * 60;
             }
 
             const secondsUntilFire = secondsUntilImpact - timeOfFlightSeconds;
             return secondsUntilFire <= 0 ? "FIRE NOW" : formatCountdown(secondsUntilFire);
         }
 
+        function getDataItemClass(label) {
+            if (label === "Ammunition") return "data-item wide ammunition-solution";
+            if (label === "Method of Fire Control") return "data-item wide";
+            return "data-item";
+        }
+
+        function formatDataLabel(label) {
+            const overrides = {
+                AOF: "AOF",
+            };
+            if (overrides[label]) return overrides[label];
+            return String(label || "").toUpperCase();
+        }
+
         function addDataItem(label, value) {
+            const displayValue = label === "Fuze Setting" && !value ? "" : (value || "---");
             return `
-                <div class="data-item">
-                    <div class="data-label">${label}</div>
-                    <div class="data-value">${value || "---"}</div>
+                <div class="${getDataItemClass(label)}">
+                    <div class="data-label">${formatDataLabel(label)}</div>
+                    <div class="data-value">${displayValue}</div>
+                </div>
+            `;
+        }
+
+        function addPlaceholderDataItem() {
+            return `<div class="data-item placeholder" aria-hidden="true"></div>`;
+        }
+
+        function getChargeFamilySuffix(chargeLevel) {
+            const charge = Number(chargeLevel);
+            if (!Number.isFinite(charge)) return "";
+            return charge <= 2 ? "L" : "H";
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+            }[char]));
+        }
+
+        function getDisplayedProjectileLabel(ammunitionValue) {
+            const ammunition = String(ammunitionValue || "").trim();
+            const projectileType = normalizeAmmunitionTypeForInventory(ammunition);
+            return getAmmunitionTypeLabel(projectileType || ammunition);
+        }
+
+        function formatAmmunitionLine(ammunitionValue, roundsValue, chargeValue, showDoNotLoad) {
+            const ammunition = getDisplayedProjectileLabel(ammunitionValue);
+            const chargeText = chargeValue !== undefined && chargeValue !== null
+                ? String(chargeValue).trim()
+                : "";
+            const requiredRounds = Math.max(1, Number(roundsValue) || 1);
+            const prefix = showDoNotLoad ? "DNL" : "";
+            const ammunitionText = [`${requiredRounds} RDS`, ammunition].filter(Boolean).join(" ");
+            const hasCharge = chargeText && chargeText.toUpperCase() !== "N/A";
+            const chargeNumber = chargeText.match(/\d+/);
+            const chargeLabel = hasCharge && chargeNumber
+                ? `${chargeNumber[0]}${getChargeFamilySuffix(chargeNumber[0])}`
+                : (hasCharge ? chargeText.toUpperCase() : "");
+            return `
+                <div class="ammunition-line">
+                    <span class="ammunition-line-prefix">${escapeHtml(prefix)}</span>
+                    <span class="ammunition-line-type">${escapeHtml(ammunitionText)}</span>
+                    <span class="ammunition-line-charge">${escapeHtml(chargeLabel)}</span>
+                </div>
+            `;
+        }
+
+        function formatSolutionAmmunition(solution, payload) {
+            const doNotLoad = payload && payload.engagementTiming === "Do not load";
+            const methods = Array.isArray(payload && payload.ammunitionMethods)
+                ? payload.ammunitionMethods.filter(method => method && method.ammunition)
+                : [];
+            const primary = methods[0] || {};
+            const lines = [
+                formatAmmunitionLine(
+                    primary.ammunition || (solution && solution.ammunition),
+                    primary.rounds || (solution && solution.requiredRounds),
+                    primary.charge || (solution && solution.charge),
+                    doNotLoad
+                ),
+            ];
+
+            if (methods[1]) {
+                lines.push(formatAmmunitionLine(
+                    methods[1].ammunition,
+                    methods[1].rounds,
+                    methods[1].charge || (solution && solution.charge),
+                    false
+                ));
+            }
+
+            return `<div class="ammunition-lines">${lines.filter(Boolean).join("")}</div>`;
+        }
+
+        function formatVtTimeSetting(solution) {
+            const numericTime = Number(solution && solution.timeOfFlightSeconds);
+            const parsedTime = Number.isFinite(numericTime)
+                ? numericTime
+                : parseFloat(String(solution && solution.time || "").replace(/[^\d.-]/g, ""));
+            if (!Number.isFinite(parsedTime)) return "N/A";
+            return `${Math.max(0, parsedTime - 0.1).toFixed(1)} s`;
+        }
+
+        function getFuzeTypeForAmmunition(value) {
+            const ammunition = String(value || "").trim().toUpperCase();
+            if (ammunition === "HE VT" || ammunition === "ILLUM" || ammunition === "ILLUMINATION") return "VT";
+            if (ammunition === "HE PD" || ammunition === "HE") return "PD";
+            return "";
+        }
+
+        function getFuzeSetting(solution, payload = null) {
+            const methods = Array.isArray(payload && payload.ammunitionMethods) ? payload.ammunitionMethods : [];
+            const fuzeTypes = methods
+                .map(method => getFuzeTypeForAmmunition(method && method.ammunition))
+                .filter(Boolean);
+            const fallbackFuze = getFuzeTypeForAmmunition(solution && solution.ammunition);
+            const uniqueFuzes = Array.from(new Set(fuzeTypes.length ? fuzeTypes : [fallbackFuze].filter(Boolean)));
+            return uniqueFuzes.map(fuze => fuze === "VT" ? `VT ${formatVtTimeSetting(solution)}` : fuze).join(" / ");
+        }
+
+        function isAtMyCommandActive(payload) {
+            const timing = payload && payload.engagementTiming;
+            return Boolean(payload && (payload.atMyCommand || timing === "At my command" || /\bAMC\b/.test(String(payload.methodOfEngagement || "").toUpperCase())));
+        }
+
+        function isDoNotLoadActive(payload) {
+            return payload && payload.engagementTiming === "Do not load";
+        }
+
+        function formatMethodOfFireControl(payload, countdown = "") {
+            const method = String(payload && payload.methodOfFireControl || "").trim();
+            const timing = payload && payload.engagementTiming;
+            const isAtMyCommand = isAtMyCommandActive(payload);
+            const prefix = isAtMyCommand ? "AMC" : (timing === "Time on target" ? "TOT" : (timing === "When Ready" ? "WR" : ""));
+            const main = method;
+            return `
+                <div class="method-control-line">
+                    <span class="method-control-prefix">${prefix}</span>
+                    <span class="method-control-main">${escapeHtml(main)}</span>
+                    <span aria-hidden="true"></span>
+                    ${timing === "Time on target" ? `<span class="method-control-countdown">${escapeHtml(countdown || "")}</span>` : ""}
                 </div>
             `;
         }
@@ -1428,11 +2337,75 @@
         }
 
         function isWhenReadyFireNow(payload) {
-            return payload && payload.engagementTiming === "When Ready";
+            return payload && payload.engagementTiming === "When Ready" && !payload.atMyCommand;
         }
 
         function getEndMissionReport() {
             return readJsonStorage("endMissionReport");
+        }
+
+        function getPayloadMissionTime(payload) {
+            if (!payload) return null;
+            const assignedUnit = getAssignedUnit();
+            const timestamps = [
+                payload.resentUnits && payload.resentUnits[assignedUnit],
+                payload.updatedAt,
+                payload.acceptedAt,
+            ];
+            const times = timestamps
+                .map(value => Date.parse(value || ""))
+                .filter(time => Number.isFinite(time));
+            return times.length ? Math.max(...times) : null;
+        }
+
+        function getEndMissionReportTime(report) {
+            const time = Date.parse(report && report.endedAt || "");
+            return Number.isFinite(time) ? time : null;
+        }
+
+        function payloadIncludesAssignedUnit(payload) {
+            const assignedUnit = getAssignedUnit();
+            if (!payload || !Array.isArray(payload.solutions)) return false;
+            const recipients = Array.isArray(payload.recipients) ? payload.recipients : [];
+            return recipients.includes(assignedUnit) || payload.solutions.some(solution => solution && solution.label === assignedUnit);
+        }
+
+        function isEndMissionStaleForPayload(report, payload) {
+            if (!report || !payload || !payload.targetNumber) return false;
+            if (report.fdcCallsign && report.fdcCallsign !== getAssignedFdcCallsign()) return false;
+            if (report.targetNumber && report.targetNumber !== payload.targetNumber) return true;
+            if (!payloadIncludesAssignedUnit(payload)) return false;
+
+            const reportTime = getEndMissionReportTime(report);
+            const payloadTime = getPayloadMissionTime(payload);
+            return reportTime !== null && payloadTime !== null && payloadTime > reportTime;
+        }
+
+        function acknowledgeEndMissionReportOnly(report = getEndMissionReport()) {
+            if (!report) return;
+            const assignedUnit = getAssignedUnit();
+            const acknowledgedByUnits = {
+                ...(report.acknowledgedByUnits || {}),
+                [assignedUnit]: {
+                    acknowledgedAt: new Date().toISOString(),
+                    acknowledgedBy: getUnitAssignedName(),
+                },
+            };
+            localStorage.setItem("endMissionReport", JSON.stringify({
+                ...report,
+                acknowledged: false,
+                acknowledgedByUnits,
+            }));
+        }
+
+        function dismissStaleEndMissionForPayload(payload) {
+            const report = getEndMissionReport();
+            const acknowledgedByUnits = report && report.acknowledgedByUnits ? report.acknowledgedByUnits : {};
+            if (acknowledgedByUnits[getAssignedUnit()]) return false;
+            if (!isEndMissionStaleForPayload(report, payload)) return false;
+            acknowledgeEndMissionReportOnly(report);
+            setNotificationSound("dfcs-end-mission", false);
+            return true;
         }
 
         function formatPingTime(value) {
@@ -1535,29 +2508,30 @@
 
         function acknowledgeEndMission() {
             const report = getEndMissionReport();
-            if (report) {
-                const assignedUnit = getAssignedUnit();
-                const acknowledgedByUnits = {
-                    ...(report.acknowledgedByUnits || {}),
-                    [assignedUnit]: {
-                        acknowledgedAt: new Date().toISOString(),
-                        acknowledgedBy: getUnitAssignedName(),
-                    },
-                };
-                localStorage.setItem("endMissionReport", JSON.stringify({
-                    ...report,
-                    acknowledged: false,
-                    acknowledgedByUnits,
-                }));
-            }
+            acknowledgeEndMissionReportOnly(report);
 
-            localStorage.removeItem("latestFiringSolutions");
-            clearCurrentTargetNumber();
-            removeUnitReport("missionReceivedReport");
-            removeUnitReport("dfcsReadyState");
-            localStorage.removeItem("fireCommand");
-            removeUnitReport("shotReport");
-            removeUnitReport("roundsCompleteReport");
+            setNotificationSound("dfcs-end-mission", false);
+            const payload = getLatestFiringPayload();
+            const shouldClearUnitMission = Boolean(
+                report &&
+                (!payload || !payload.targetNumber || (
+                    report.targetNumber === payload.targetNumber &&
+                    !isEndMissionStaleForPayload(report, payload)
+                ))
+            );
+            const shouldClearSharedPayload = Boolean(shouldClearUnitMission && (!payload || payloadIncludesAssignedUnit(payload)));
+
+            if (shouldClearUnitMission) {
+                if (shouldClearSharedPayload) {
+                    localStorage.removeItem("latestFiringSolutions");
+                }
+                clearCurrentTargetNumber();
+                removeUnitReport("missionReceivedReport");
+                removeUnitReport("dfcsReadyState");
+                localStorage.removeItem("fireCommand");
+                removeUnitReport("shotReport");
+                removeUnitReport("roundsCompleteReport");
+            }
             renderDfcs();
         }
 
@@ -1600,6 +2574,7 @@
 
             if (!solution || !payload || !payload.targetNumber) return;
             if (solution.crestBlocked) return;
+            if (isDoNotLoadActive(payload)) return;
             if (isTargetNotificationPending(payload, solution)) return;
 
             setUnitReport("dfcsReadyState", {
@@ -1645,14 +2620,23 @@
             const payload = getLatestFiringPayload();
             const shotReport = getShotReport();
             if (!isCurrentTargetState(shotReport, payload) || shotReport.unit !== assignedUnit) return;
+            const solution = payload && Array.isArray(payload.solutions)
+                ? payload.solutions.find(item => item.label === assignedUnit)
+                : null;
+            const ammunitionInventory = deductAmmunitionForMission(payload, solution);
 
             setUnitReport("roundsCompleteReport", {
                 unit: assignedUnit,
                 unitAssignedName: getUnitAssignedName(),
                 targetNumber: payload.targetNumber,
+                missionInstanceId: getMissionInstanceId(payload),
                 completedAt: new Date().toISOString(),
+                ammunitionInventory,
             });
             setMissionUnitStatus("rounds complete", payload);
+            if (activeDfcsDropdown === "ammunition") {
+                renderAmmunitionInventory();
+            }
             renderDfcs();
         }
 
@@ -1661,6 +2645,7 @@
             const assignedUnit = getAssignedUnit();
             const unitAssignedName = getUnitAssignedName();
             const payload = getLatestFiringPayload();
+            dismissStaleEndMissionForPayload(payload);
             const endMissionActive = isEndMissionActive(payload);
             const solution = payload && Array.isArray(payload.solutions)
                 ? payload.solutions.find(item => item.label === assignedUnit)
@@ -1694,17 +2679,27 @@
             const roundsCompleteButton = document.getElementById("roundsCompleteButton");
             const denyMissionButton = document.getElementById("denyMissionButton");
             const movementButton = document.getElementById("movementButton");
-            const crestButton = document.getElementById("crestButton");
-            const crestPanel = document.getElementById("crestPanel");
+            const ammunitionButton = document.getElementById("ammunitionButton");
+            const movementDetailsPanel = document.getElementById("movementDetailsPanel");
+            const ammunitionPanel = document.getElementById("ammunitionPanel");
             const crestMinimumElevationInput = document.getElementById("crestMinimumElevationInput");
             const movingLocationPanel = document.getElementById("movingLocationPanel");
+            const movingLocationField = document.getElementById("movingLocationField");
             const movingLocationInput = document.getElementById("movingLocationInput");
+            const movingAltitudeField = document.getElementById("movingAltitudeField");
             const movingAltitudeInput = document.getElementById("movingAltitudeInput");
+            const movingAzimuthOfLayField = document.getElementById("movingAzimuthOfLayField");
+            const movingAzimuthOfLayInput = document.getElementById("movingAzimuthOfLayInput");
+            const movingLocationApplyButton = document.getElementById("movingLocationApplyButton");
             const endMissionReportPanel = document.getElementById("endMissionReportPanel");
             const endMissionReportText = document.getElementById("endMissionReportText");
             const operationalStatus = getUnitOperationalStatus(assignedUnit);
+            const m777WeaponSelected = isM777WeaponSelected();
+            const movementDropdownVisible = operationalStatus === "moving" && activeDfcsDropdown !== "ammunition";
+            const ammunitionDropdownVisible = activeDfcsDropdown === "ammunition";
             const targetNotificationActive = updateTargetReceivedNotification(payload, solution);
             const checkFiringActive = isCheckFiringActive();
+            const doNotLoadActive = isDoNotLoadActive(payload);
             if (!checkFiringActive) {
                 applyCheckFiringButtonLockout(false);
             }
@@ -1712,6 +2707,7 @@
             if (endMissionReportPanel) {
                 endMissionReportPanel.classList.toggle("active", endMissionActive);
             }
+            setNotificationSound("dfcs-end-mission", endMissionActive);
             if (endMissionReportText) {
                 const report = getEndMissionReport();
                 const lines = report && report.targetNumber
@@ -1723,7 +2719,7 @@
                 endMissionReportText.innerText = lines.join("\n");
             }
 
-            readyButton.disabled = !solution || targetNotificationActive || Boolean(solution && solution.crestBlocked);
+            readyButton.disabled = !solution || targetNotificationActive || doNotLoadActive || Boolean(solution && solution.crestBlocked);
             readyButton.classList.toggle("sent", isReady);
             readyButton.innerText = isReady ? "READY SENT" : "READY";
             movementButton.classList.remove("moving", "stationary");
@@ -1735,19 +2731,51 @@
                 : operationalStatus === "stationary"
                     ? "STATIONARY"
                     : "SET STATIONARY";
-            if (crestButton) {
-                const crestMinimum = getCrestMinimumElevation(assignedUnit);
-                crestButton.classList.toggle("active", Boolean(crestMinimum));
-                crestButton.innerText = "CREST DATA";
+            movementButton.classList.toggle("active", movementDropdownVisible);
+            if (ammunitionButton) {
+                ammunitionButton.classList.toggle("active", ammunitionDropdownVisible);
             }
-            if (crestPanel) {
-                crestPanel.classList.toggle("visible", crestPanelOpen);
+            if (movementDetailsPanel) {
+                movementDetailsPanel.classList.toggle("visible", movementDropdownVisible);
+            }
+            if (ammunitionPanel) {
+                ammunitionPanel.classList.toggle("visible", ammunitionDropdownVisible);
+            }
+            if (
+                ammunitionPanel &&
+                ammunitionDropdownVisible &&
+                !ammunitionPanel.contains(document.activeElement)
+            ) {
+                renderAmmunitionInventory();
             }
             if (crestMinimumElevationInput && document.activeElement !== crestMinimumElevationInput) {
                 crestMinimumElevationInput.value = getCrestMinimumElevation(assignedUnit);
             }
             if (movingLocationPanel) {
-                movingLocationPanel.classList.toggle("visible", operationalStatus === "moving");
+                movingLocationPanel.classList.toggle("visible", movementDropdownVisible);
+                movingLocationPanel.classList.toggle("has-azimuth", movementDropdownVisible && m777WeaponSelected);
+            }
+            if (movingLocationField) {
+                movingLocationField.style.display = movementDropdownVisible ? "block" : "none";
+            }
+            if (movingAltitudeField) {
+                movingAltitudeField.style.display = movementDropdownVisible ? "block" : "none";
+            }
+            if (movingAzimuthOfLayField) {
+                movingAzimuthOfLayField.style.display = movementDropdownVisible && m777WeaponSelected ? "block" : "none";
+            }
+            if (movingLocationApplyButton) {
+                movingLocationApplyButton.style.display = movementDropdownVisible ? "inline-block" : "none";
+            }
+            if (movingAzimuthOfLayInput && !m777WeaponSelected) {
+                movingAzimuthOfLayInput.value = "";
+                updateArcOfFireDisplay("");
+            } else if (movingAzimuthOfLayInput && document.activeElement !== movingAzimuthOfLayInput && !movingAzimuthOfLayInputDirty) {
+                const azimuthValue = getPendingMovingAzimuthOfLay(assignedUnit) || getCurrentUnitAzimuthOfLay(assignedUnit);
+                movingAzimuthOfLayInput.value = azimuthValue;
+                updateArcOfFireDisplay(azimuthValue);
+            } else if (movingAzimuthOfLayInput) {
+                updateArcOfFireDisplay(movingAzimuthOfLayInput.value);
             }
             if (movingLocationInput && document.activeElement !== movingLocationInput && !movingLocationInputDirty) {
                 movingLocationInput.value = getPendingMovingLocation(assignedUnit) || getCurrentUnitLocation(assignedUnit);
@@ -1775,6 +2803,8 @@
                 commandStatus.innerText = "Ready sent to FDC.";
             } else if (targetNotificationActive) {
                 commandStatus.innerText = "Acknowledge target received.";
+            } else if (doNotLoadActive) {
+                commandStatus.innerText = "Do not load active. Ready disabled.";
             } else if (solution && solution.crestBlocked) {
                 commandStatus.innerText = "Local crest blocks this firing solution.";
             } else if (solution) {
@@ -1786,7 +2816,6 @@
             if (checkFiringActive) {
                 readyButton.disabled = true;
                 movementButton.disabled = true;
-                if (crestButton) crestButton.disabled = true;
                 shotButton.disabled = true;
                 roundsCompleteButton.disabled = true;
                 denyMissionButton.disabled = true;
@@ -1795,7 +2824,6 @@
                 commandStatus.innerText = "CHECK FIRING active. Await FDC.";
             } else {
                 movementButton.disabled = false;
-                if (crestButton) crestButton.disabled = false;
             }
 
             if (!solution) {
@@ -1820,17 +2848,16 @@
             }
             applyCheckFiringButtonLockout(checkFiringActive);
             emptyState.style.display = "none";
+            const ammunitionDisplay = formatSolutionAmmunition(solution, payload);
+            const fuzeSetting = getFuzeSetting(solution, payload);
             grid.innerHTML = [
-                solution.status ? addDataItem("Status", solution.status) : "",
                 addDataItem("Bearing", solution.bearing),
+                ammunitionDisplay ? addDataItem("Ammunition", ammunitionDisplay) : "",
+                addDataItem("Fuze Setting", fuzeSetting),
                 addDataItem("Elevation", solution.elevation),
-                solution.ammunition ? addDataItem("Ammunition", solution.ammunition) : "",
-                solution.charge !== undefined && solution.charge !== "" ? addDataItem("Charge", solution.charge) : "",
-                fireCountdown ? addDataItem("Fire Countdown", fireCountdown) : "",
-                addDataItem("Time of Flight", solution.time),
-                addDataItem("Adjusted Aim Grid", solution.aimGrid),
-                payload.methodOfEngagement ? addDataItem("Method of Engagement", payload.methodOfEngagement) : "",
-                payload.methodOfFireControl ? addDataItem("Method of Fire Control", payload.methodOfFireControl) : "",
+                formatMethodOfFireControl(payload, fireCountdown) ? addDataItem("Method of Fire Control", formatMethodOfFireControl(payload, fireCountdown)) : "",
+                addDataItem("AOF", solution.withinArcOfFire || "N"),
+                solution.status ? addDataItem("Status", solution.status) : "",
             ].join("");
         }
 

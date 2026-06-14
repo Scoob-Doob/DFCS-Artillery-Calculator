@@ -157,6 +157,10 @@
     </div>
 
     <script>
+        function formatUnitDisplayName(unit, callsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1") {
+            return `${callsign || "1"}${unit || ""}`;
+        }
+
         function writeDfcsPresence() {
             const assignedUnit = localStorage.getItem("assignedFiringUnit") || "A";
             const fdcCallsign = localStorage.getItem("assignedFdcCallsign") || localStorage.getItem("fdcCallsign") || "1";
@@ -180,7 +184,7 @@
             localStorage.setItem(`firingUnit${fdcCallsign}${assignedUnit}Presence`, JSON.stringify({
                 unit: assignedUnit,
                 fdcCallsign,
-                callsign: `${assignedUnit}${fdcCallsign}`,
+                callsign: formatUnitDisplayName(assignedUnit, fdcCallsign),
                 joined: true,
                 joinedAt,
                 lastSeenAt: now,
@@ -237,11 +241,11 @@
             const assignedUnit = localStorage.getItem("assignedFiringUnit") || (units[0] && units[0].label) || "A";
 
             document.getElementById("weaponSystemDisplay").innerText = weaponSystem;
-            document.getElementById("assignedUnitDisplay").innerText = `Unit ${assignedUnit}`;
+            document.getElementById("assignedUnitDisplay").innerText = `Unit ${formatUnitDisplayName(assignedUnit, fdcCallsign)}`;
             document.getElementById("unitList").innerHTML = units.map(unit => `
                 <div class="unit-card ${unit.label === assignedUnit ? "active" : ""}">
                     <div>
-                        <div class="unit-name">Unit ${unit.label}</div>
+                        <div class="unit-name">Unit ${formatUnitDisplayName(unit.label, unit.fdcCallsign)}</div>
                         <div>FDC: ${unit.fdcCallsign}</div>
                         <div>Location: ${unit.location}</div>
                         <div>Altitude: ${unit.altitude} m</div>
